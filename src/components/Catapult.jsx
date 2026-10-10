@@ -3,6 +3,8 @@ import Wheel from "./Wheel.jsx";
 import {RigidBody, useFixedJoint, useRapier, useRevoluteJoint} from "@react-three/rapier";
 import {Box, Shape, Sphere} from "@react-three/drei";
 import useGameStore from "../store.js";
+import * as THREE from "three";
+import {Vector3} from "three";
 
 export function Jointmissile({beamRef, missileRef}){
    useFixedJoint(beamRef, missileRef, [
@@ -26,10 +28,12 @@ export default function Catapult({params,position = [0,0,0]}){
     const wheel_4Ref = useRef(null);
     const rotatePlatformRef = useRef(null);
     const beamRef = useRef(null)
+    const basketRef = useRef(null)
     const towerRotation = useGameStore((state)=>state.towerRotation)
     const shot = useGameStore((state)=>state.shot)
     const recharge = useGameStore((state)=>state.recharge)
     const missileRef = useRef(null);
+    const worldPosition = useRef(new THREE.Vector3())
 
 
     const platformRef = useRef(null);
@@ -163,21 +167,31 @@ export default function Catapult({params,position = [0,0,0]}){
 
     useEffect(() => {
         if (joint_beam.current) {
-            joint_beam.current.configureMotorVelocity(shot * 10, 2)
+            joint_beam.current.configureMotorVelocity(shot, 2)
             joint_beam.current.setLimits(-Math.PI / 4, Math.PI / 2)
+
         }
     }, [joint_beam, shot])
 
+    useEffect(() => {
+        if(basketRef.current){
+            basketRef.current.getWorldPosition(worldPosition.current)
+            missileRef.current.setTranslation(new Vector3(worldPosition.current.x,worldPosition.current.y + 0.5,worldPosition.current.z))
+            missileRef.current.setLinvel({x:0,y:0,z:0},true)
+            joint_beam.current.setLimits(-Math.PI / 4, Math.PI / 2)
+            console.log(missileRef.current)
+        }
+    }, [joint_beam, missileRef,recharge]);
 
 
 
 
 
-
+const t = false
 
 
     return <group position={position}>
-        {!recharge && shot === 0? <Jointmissile beamRef={beamRef} missileRef={missileRef} />:""}
+        {!recharge && shot === 0 && t? <Jointmissile beamRef={beamRef} missileRef={missileRef} />:""}
         <RigidBody ref={wheel_1Ref} type={"dynamic"} colliders={"hull"}>
             <group position={[0,0,0]}>
                  {wheel_1.map((el)=><Wheel key={el.id} element={el} />)}
@@ -215,7 +229,7 @@ export default function Catapult({params,position = [0,0,0]}){
         <RigidBody ref={beamRef} type={"dynamic"} colliders={"cuboid"}>
             <group>
                 {beam.map((el)=><primitive key={el.id} object={el} />)}
-                <group position={[0,0,-8]}>
+                <group ref={basketRef} position={[0,0,-8]}>
                     <Box args={[3,0.5,3]}>
                         <meshStandardMaterial color="#fbe1b9" />
                     </Box>

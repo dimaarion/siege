@@ -30,7 +30,7 @@ export default function BottomMenu(){
             <div onPointerDown={()=>{
                 useGameStore.getState().shotStart()
             }} onPointerUp={()=>{
-
+                useGameStore.getState().shotMin()
             }} className={"w-37 h-15 mt-3 flex justify-center rounded-xl bg-red-700"}><div className={"flex mt-3 text-white text-2xl"}>
                 Выстрел
             </div></div>
