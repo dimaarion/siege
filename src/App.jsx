@@ -3,6 +3,7 @@ import {Canvas} from "@react-three/fiber";
 import {OrbitControls, Sky} from "@react-three/drei";
 import Game from "./game/Game.jsx";
 import BottomMenu from "./ui/BottomMenu.jsx";
+import TopPanel from "./ui/TopPanel.jsx";
 
 function App() {
 
@@ -10,11 +11,11 @@ function App() {
   return (
     <>
       <Canvas shadows  camera={{
-        fov: 45, position: [16, 10, 36]
+        fov: 30, position: [16, 50, -100],
       }}>
-          <fog attach="fog" args={['#dff1ff', 100, 350]} />
+          <fog attach="fog" args={['#dff1ff', 200, 500]} />
           <Sky sunPosition={[100, 100, 50]} />
-          <ambientLight intensity={0.55} />
+          <ambientLight intensity={1} />
           <directionalLight
               position={[20, 30, 15]}
               intensity={2.2}
@@ -27,8 +28,9 @@ function App() {
           />
             <Game />
 
-           <OrbitControls makeDefault target={[0, 4, 6]} enablePan={false} maxPolarAngle={Math.PI / 2 - 0.05} minDistance={8} maxDistance={70} />
+
       </Canvas>
+        <TopPanel />
         <BottomMenu />
     </>
   )

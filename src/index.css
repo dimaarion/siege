@@ -19,3 +19,12 @@ body,
     user-select: none;
     overflow: hidden;
 }
+
+input[type="range"]::-webkit-slider-thumb{
+
+    background: maroon;
+}
+input[type="range"]::-moz-range-thumb{
+    border: solid 2px #000000;
+    background: #020202;
+}
