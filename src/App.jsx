@@ -1,9 +1,13 @@
 import './App.css'
 import {Canvas} from "@react-three/fiber";
-import {OrbitControls, Sky} from "@react-three/drei";
+import {CameraControls, OrbitControls, Sky} from "@react-three/drei";
 import Game from "./game/Game.jsx";
 import BottomMenu from "./ui/BottomMenu.jsx";
 import TopPanel from "./ui/TopPanel.jsx";
+import {useEffect, useRef} from "react";
+import StartMenu from "./ui/pages/StartMenu.jsx";
+import StartPage from "./ui/pages/StartPage.jsx";
+import PausePage from "./ui/pages/PausePage.jsx";
 
 function App() {
 
@@ -32,6 +36,11 @@ function App() {
       </Canvas>
         <TopPanel />
         <BottomMenu />
+        <div className={"fixed z-50 top-0 left-0 right-0"}>
+            {/*<StartPage />*/}
+            <PausePage  open={true} />
+        </div>
+
     </>
   )
 }

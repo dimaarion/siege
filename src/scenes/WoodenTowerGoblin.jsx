@@ -1,6 +1,9 @@
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import { Color } from 'three'
 import { CuboidCollider, InstancedRigidBodies, RigidBody } from '@react-three/rapier'
+import useGameStore from "../store.js";
+import Road from "../components/Road.jsx";
+import Trees from "../components/Trees.jsx";
 
 // Оттенки дерева — блоки чередуют цвета, чтобы башня выглядела живее
 const WOOD = ['#a8743f', '#b9824a', '#9a6a38', '#c28d55']
@@ -49,6 +52,8 @@ function Bricks({ items }) {
       density={0.6}
       friction={0.8}
       restitution={0.05}
+      name={"brick-rig"}
+      userData={{name:"brick",active:true}}
     >
       <instancedMesh
         ref={meshRef}
@@ -56,6 +61,7 @@ function Bricks({ items }) {
         castShadow
         receiveShadow
         frustumCulled={false}
+        name={"brick"}
       >
         <boxGeometry args={[1, 1, 1]} />
         <meshStandardMaterial roughness={0.85} />
@@ -63,6 +69,9 @@ function Bricks({ items }) {
     </InstancedRigidBodies>
   )
 }
+
+
+
 
 // Часть гоблина. s — масштаб, solid — есть коллайдер, иначе чисто декор
 function Part({ position, size, color, s, solid = false }) {
@@ -92,6 +101,7 @@ function Goblin({ position = [0, 0, 0], height }) {
       density={0.8}
       friction={0.7}
       restitution={0.1}
+      userData={{name:"goblin"}}
     >
       {/* ноги */}
       <Part s={s} solid position={[-0.2, 0.2, 0]} size={[0.25, 0.4, 0.25]} color={GOBLIN_DARK} />
@@ -133,6 +143,23 @@ function Goblin({ position = [0, 0, 0], height }) {
   )
 }
 
+
+function Sensor({position=[0,0,0]}){
+  return <RigidBody type={"fixed"} colliders={"cuboid"} position={position} >
+    <CuboidCollider onIntersectionEnter={(e)=>{
+      if(e.other.rigidBody.userData.name === "brick"){
+        useGameStore.getState().scopeStep()
+      }
+    }} name={"sensor"} sensor={true} args={[100,1,100]} />
+
+    <CuboidCollider onIntersectionEnter={(e)=>{
+      if(e.other.rigidBody.userData.name === "goblin"){
+        useGameStore.getState().scopeStep()
+      }
+    }} name={"sensor-goblin"} sensor={true} args={[200,15,200]} />
+  </RigidBody>
+}
+
 /**
  * Пятиугольная полая деревянная башня из блоков в кирпичной кладке
  * (перевязка швов) с одним гоблином на крыше. Высота этажа — 10 м.
@@ -141,7 +168,10 @@ function Goblin({ position = [0, 0, 0], height }) {
  * Пропсы:
  *  position    — позиция центра основания башни
  *  floorHeight — высота этажа в метрах, по умолчанию 10
- *  courses     — число рядов кладки по высоте, по умолчанию 24 (блок ~0.42 м)
+ *  blockHeight — высота блока в метрах, по умолчанию 0.83
+ *                (12 рядов, 240 кирпичей при floorHeight = 10)
+ *  courses     — число рядов кладки по высоте; если задан, перекрывает
+ *                blockHeight. По умолчанию round(floorHeight / blockHeight)
  *
  * Как устроена кладка:
  *  в каждой стене по 4 блока в ряду; соседние ряды сдвинуты примерно на
@@ -151,14 +181,15 @@ function Goblin({ position = [0, 0, 0], height }) {
  *
  * Пропорции при floorHeight = 10 (катапульта 15 м → башня 2/3 от неё):
  *  радиус пятиугольника ~3.3 м, сторона ~3.9 м, толщина стены 0.5 м,
- *  блок ~0.95 × 0.42 × 0.5 м, гоблин ~2 м.
- *  Всего 5 × 4 × 24 = 480 кирпичей — один instancedMesh на всю башню
- *  (InstancedRigidBodies): 1 draw call вместо 480.
+ *  блок ~0.95 × 0.83 × 0.5 м, гоблин ~2 м.
+ *  Всего 5 × 4 × 12 = 240 кирпичей — один instancedMesh на всю башню
+ *  (InstancedRigidBodies): 1 draw call вместо 240 отдельных мешей.
  */
 export default function WoodenTowerGoblin({
   position = [0, 0, 0],
   floorHeight = 10,
-  courses = 24,
+  blockHeight = 0.83,
+  courses = Math.max(2, Math.round(floorHeight / blockHeight)),
 }) {
   const [px, py, pz] = position
 
@@ -243,6 +274,9 @@ export default function WoodenTowerGoblin({
         position={[px, py + floorHeight + roofH + 0.002, pz]}
         height={goblinHeight}
       />
+      <Sensor position={[px,0.5,pz]} />
+      <Road points={[[0, 0, 200], [0, 0, -200]]} colliders={false} />
+      <Trees exclude={[[0, 0, 200], [0, 0, -200]]} height={25} count={80} area={[-300, 300, -300, 300]} seed={10} />
     </group>
   )
 }

@@ -1,6 +1,6 @@
-
+import {Clone} from "@react-three/drei";
 
 
 export default function Wheel({element}) {
-    return <primitive  object={element} />
+    return <Clone position={[0,0,0]} object={element} />
 }

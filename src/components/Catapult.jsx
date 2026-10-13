@@ -1,11 +1,10 @@
 import {useEffect, useMemo, useRef, useState} from "react";
 import Wheel from "./Wheel.jsx";
 import {RigidBody, useFixedJoint, useRevoluteJoint} from "@react-three/rapier";
-import {Box, CameraControls} from "@react-three/drei";
+import {Box, Clone} from "@react-three/drei";
 import useGameStore from "../store.js";
 import * as THREE from "three";
 import {Vector3} from "three";
-import {useFrame} from "@react-three/fiber";
 import Pule from "./Pule.jsx";
 
 export function Jointmissile({beamRef, missileRef}){
@@ -23,7 +22,7 @@ export function Jointmissile({beamRef, missileRef}){
    return null
 }
 
-export function JointBeam({rotatePlatformRef, beamRef,slant}){
+export function JointBeam({rotatePlatformRef, beamRef,slant,stopRef}){
     const force = useGameStore((state)=>state.force)
     const shot = useGameStore((state)=>state.shot)
 
@@ -37,17 +36,17 @@ export function JointBeam({rotatePlatformRef, beamRef,slant}){
         [1, 0, 0]
     ]);
     useEffect(() => {
-        if (joint_beam.current) {
+        if (joint_beam.current && stopRef.current === null) {
             joint_beam.current.configureMotorVelocity(shot, force)
             joint_beam.current.setLimits(-Math.PI / 4, Math.PI / 2)
 
         }
 
-    }, [force, joint_beam, shot])
+    }, [force, joint_beam, shot, stopRef])
     return null
 }
 
-export default function Catapult({params,position = [0,0,0]}){
+export default function Catapult({params,position = [0,0,0],shells}){
 
     const wheel_1Ref = useRef(null);
     const wheel_2Ref = useRef(null);
@@ -56,7 +55,8 @@ export default function Catapult({params,position = [0,0,0]}){
     const rotatePlatformRef = useRef(null);
     const beamRef = useRef(null)
     const basketRef = useRef(null)
-    const cameraControlsRef = useRef(null)
+
+    const stopRef = useRef(null)
     const towerRotation = useGameStore((state)=>state.towerRotation)
     const shot = useGameStore((state)=>state.shot)
     const slant = useGameStore((state)=>state.slant)
@@ -64,10 +64,15 @@ export default function Catapult({params,position = [0,0,0]}){
     const movement = useGameStore((state)=>state.movement)
     const pule = useGameStore((state)=>state.pule)
     const puleStep = useGameStore((state)=>state.puleStep)
+    const restartKey = useGameStore((state)=>state.restartKey)
 
     const missileRef = useRef(null);
     const worldPosition = useRef(new THREE.Vector3())
-    const [start, setStart] = useState(true)
+    const [start, setStart] = useState(false)
+    const [stop, setStop] = useState(false)
+
+
+
 
 
     const platformRef = useRef(null);
@@ -156,14 +161,6 @@ export default function Catapult({params,position = [0,0,0]}){
 
     useEffect(() => {
         useGameStore.getState().setSlant(0)
-        const position = platformRef?.current.translation()
-        cameraControlsRef.current.setLookAt(
-            50, 20, -100, // Новая позиция камеры
-            0, 20, 50,  // Куда смотрит камера (target)
-            true      // Включить плавную анимацию
-        ).then((r)=>{
-            console.log(r)
-        });
     }, []);
 
 
@@ -207,12 +204,12 @@ export default function Catapult({params,position = [0,0,0]}){
 
     useEffect(() => {
         if (joint_rotatePlatform.current) {
-            joint_rotatePlatform.current.configureMotorVelocity(towerRotation * 10, towerRotation === 0?1000:0.1)
+            joint_rotatePlatform.current.configureMotorVelocity(towerRotation * 10, towerRotation === 0?1000:0.5)
             joint_rotatePlatform.current.setLimits(-Math.PI / 4, Math.PI / 4)
        if(towerRotation !== 0){
            rotatePlatformRef.current.setEnabledRotations(true, true, true, true);
        }
-       console.log(towerRotation)
+
         }
     }, [joint_rotatePlatform, towerRotation])
 
@@ -229,41 +226,27 @@ export default function Catapult({params,position = [0,0,0]}){
     useEffect(() => {
         if(recharge){
             if(basketRef.current){
-                if(pule.length > puleStep){
+                if(pule.length + 1 === puleStep){
+                    stopRef.current = true
+                }
+
+                if(pule.length + 1 > puleStep && !stopRef.current){
                     const position = basketRef.current.getWorldPosition(worldPosition.current)
-                    missileRef?.current.setTranslation(new Vector3(position.x,position.y + 1.5,position.z - 1))
-                    missileRef?.current.setEnabledRotations(true, true, true, true);
+                    missileRef?.current?.setTranslation(new Vector3(position.x,position.y + 1.5,position.z - 1))
+                    missileRef?.current?.setEnabledRotations(true, true, true, true);
                 }
              }
         }
-
         if(shot !== 0){
             beamRef.current.setEnabledRotations(true, true, true, true);
         }
-
-        }, [recharge, shot]);
-
-
-    const vec = new Vector3()
-useFrame(({camera})=>{
-    if(!platformRef.current)return
-  //  const positionBasket = basketRef.current.getWorldPosition(worldPosition.current)
-  //  missileRef?.current.setTranslation(vec.set(positionBasket.x,positionBasket.y + 1.3,positionBasket.z - 0.9))
-    const position = platformRef.current.translation()
-    if(useGameStore.getState().camera){
-      //  camera.position.lerp(vec.set(10,50,200),0.5)
-      //  camera.lookAt(2,11 ,204)
-    }
-
-})
-
-
+        }, [pule.length, puleStep, recharge, shot]);
 
 
     return <group position={position}>
-        <CameraControls makeDefault target={[0, 5, 6]}   enablePan={false} maxPolarAngle={Math.PI / 2 + 0.01} minDistance={5} maxDistance={160} ref={cameraControlsRef} />
-        {recharge && shot === 0 && pule.length > puleStep? <Jointmissile beamRef={beamRef} missileRef={missileRef} />:""}
-        <JointBeam key={slant} beamRef={beamRef} rotatePlatformRef={rotatePlatformRef} slant={slant} />
+
+        {recharge && shot === 0 && pule.length + 1 > puleStep? <Jointmissile beamRef={beamRef} missileRef={missileRef} />:""}
+        <JointBeam key={slant} beamRef={beamRef} rotatePlatformRef={rotatePlatformRef} slant={slant} stopRef={stopRef} />
         <RigidBody enabledRotations={[false,false,false]} ref={wheel_1Ref} type={"dynamic"} colliders={"hull"}>
             <group position={[0,0,0]}>
                  {wheel_1.map((el)=><Wheel key={el.id} element={el} />)}
@@ -290,9 +273,9 @@ useFrame(({camera})=>{
 
         <RigidBody enabledRotations={[false,false,false]}  ref={rotatePlatformRef} type={"dynamic"} colliders={"hull"}>
             <group position={[0,-2,0]}>
-                {rotatePlatform.map((el)=><primitive key={el.id} object={el} />)}
+                {rotatePlatform.map((el)=><Clone key={el.id} object={el} />)}
                 <group>
-                    {post.map((el)=><primitive key={el.id} object={el} />)}
+                    {post.map((el)=><Clone key={el.id} object={el} />)}
                 </group>
             </group>
         </RigidBody>
@@ -300,7 +283,7 @@ useFrame(({camera})=>{
 
         <RigidBody  rotation={[-Math.PI / 5,0,0]} userData={{name:"beam"}}  ref={beamRef} type={"dynamic"} colliders={"cuboid"}>
             <group>
-                {beam.map((el)=><primitive key={el.id} object={el} />)}
+                {beam.map((el)=><Clone key={el.id} object={el} />)}
                 <group ref={basketRef} position={[0,0,-8]}>
                     <Box args={[3,0.5,3]}>
                         <meshStandardMaterial color="#fbe1b9" />
@@ -323,11 +306,11 @@ useFrame(({camera})=>{
         </RigidBody>
         <RigidBody enabledRotations={[false,false,false]}  ref={platformRef} type={"fixed"} colliders={"cuboid"}>
             <group position={[0,-2,0]}>
-                {platform.map((el)=><primitive key={el.id} object={el} />)}
+                {platform.map((el)=><Clone key={el.id} object={el} />)}
             </group>
         </RigidBody>
 
-        <Pule missileRef={missileRef} />
+        <Pule missileRef={missileRef} shells={shells} />
 
     </group>
 }
