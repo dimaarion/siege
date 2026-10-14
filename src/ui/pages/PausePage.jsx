@@ -112,15 +112,11 @@ export function usePause({ autoPause = true } = {}) {
 }
 
 const HEAD = "font-['Pirata_One',serif] font-normal tracking-wide"
-const FONT_CSS =
-  "@import url('https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700&family=Pirata+One&display=swap');"
-const focus =
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700'
+const FONT_CSS = "@import url('https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700&family=Pirata+One&display=swap');"
+const focus = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700'
 
 const TABS = [
-  ['sound', 'Звук'],
-  ['graphics', 'Графика'],
-  ['controls', 'Управление'],
+  ['sound', 'Звук']
 ]
 
 const KEYS = [
@@ -216,61 +212,17 @@ function Segmented({ id, label, hint, value, options, onChange = ()=>{} }) {
 
 /* ---------- страница ---------- */
 
-export default function PausePage({ open, settings, onChange = ()=>{} , onReset = ()=>{} , onResume = ()=>{} , onRestart = ()=>{}, onMenu = ()=>{} , title, stats }) {
+export default function PausePage({ open, onReset = ()=>{} , onResume = ()=>{} , onRestart = ()=>{}, onMenu = ()=>{} , title, stats }) {
   const [tab, setTab] = useState('sound')
   const rootRef = useRef(null)
   const resumeRef = useRef(null)
   const master = useGameStore((state)=>state.master)
-  // фокус на «Продолжить» при открытии, возврат фокуса при закрытии
-  useEffect(() => {
-    if (!open) return
-    const previous = document.activeElement
-    setTab('sound')
-    resumeRef.current?.focus()
-    return () => previous?.focus?.()
-  }, [open])
-
-  const onKeyDown = useCallback(
-    (e) => {
-      if (e.code === 'Escape') {
-        e.preventDefault()
-        e.stopPropagation()
-        onResume?.()
-        return
-      }
-      if (e.key !== 'Tab') return
-      // фокус ходит по кругу внутри страницы
-      const items = [...(rootRef.current?.querySelectorAll('button, input') ?? [])].filter((el) => !el.disabled)
-      if (!items.length) return
-      const first = items[0]
-      const last = items[items.length - 1]
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault()
-        last.focus()
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault()
-        first.focus()
-      }
-    },
-    [onResume]
-  )
-
-  // стрелки влево и вправо переключают вкладки, как в обычном tablist
-  const onTabKey = (e) => {
-    const i = TABS.findIndex(([id]) => id === tab)
-    if (e.key === 'ArrowRight') setTab(TABS[(i + 1) % TABS.length][0])
-    if (e.key === 'ArrowLeft') setTab(TABS[(i + TABS.length - 1) % TABS.length][0])
-  }
-
+  const music = useGameStore((state)=>state.music)
+  const effects = useGameStore((state)=>state.effects)
   if (!open) return null
-  const s = settings
-  const set = (k) => (v) => onChange({ [k]: v })
-
-
   return (
     <div
       ref={rootRef}
-      onKeyDown={onKeyDown}
       role="dialog"
       aria-modal="true"
       aria-labelledby="pause-title"
@@ -325,7 +277,7 @@ export default function PausePage({ open, settings, onChange = ()=>{} , onReset 
 
         {/* справа: настройки */}
         <section className="flex min-h-0 flex-col rounded-sm border border-white/10 bg-white/5">
-          <div role="tablist" aria-label="Настройки" onKeyDown={onTabKey} className="flex shrink-0 gap-6 border-b border-white/10 px-5">
+          <div role="tablist" aria-label="Настройки"  className="flex shrink-0 gap-6 border-b border-white/10 px-5">
             {TABS.map(([id, label]) => (
               <button
                 key={id}
@@ -344,46 +296,12 @@ export default function PausePage({ open, settings, onChange = ()=>{} , onReset 
               </button>
             ))}
           </div>
-
           <div id="set-panel" role="tabpanel" aria-labelledby={`set-tab-${tab}`} className="min-h-0 flex-1 overflow-auto px-5">
             {tab === 'sound' && (
               <>
                 <Slider id="s-master" label="Общая громкость" value={master} onChange={useGameStore.getState().setMaster} />
-                <Slider id="s-music" label="Музыка" value={s?.music} onChange={set('music')} />
-                <Slider id="s-effects" label="Эффекты" hint="Удары, взрывы, обвалы" value={s?.effects} onChange={set('effects')} />
-              </>
-            )}
-
-            {tab === 'graphics' && (
-              <>
-                <Segmented
-                  id="s-shadows"
-                  label="Тени"
-                  hint="Выключите, если игра тормозит"
-                  value={s?.shadows}
-                  options={[
-                    ['off', 'Выкл'],
-                    ['low', 'Средние'],
-                    ['high', 'Высокие'],
-                  ]}
-                  onChange={set('shadows')}
-                />
-                <Toggle id="s-fps" label="Счётчик кадров" checked={s?.fps} onChange={set('fps')} />
-              </>
-            )}
-
-            {tab === 'controls' && (
-              <>
-                <Slider id="s-sens" label="Чувствительность камеры" value={s?.sensitivity} onChange={set('sensitivity')} />
-                <Toggle id="s-aim" label="Линия прицела" hint="Пунктир траектории выстрела" checked={s?.aimLine} onChange={set('aimLine')} />
-                <ul className="grid grid-cols-2 gap-x-6 gap-y-2 py-4 text-sm text-white/60 sm:grid-cols-3">
-                  {KEYS.map(([k, label]) => (
-                    <li key={k} className="flex items-center gap-2">
-                      <kbd className="rounded-sm border border-white/20 px-2 py-0.5 font-sans text-xs text-white">{k}</kbd>
-                      {label}
-                    </li>
-                  ))}
-                </ul>
+                <Slider id="s-music" label="Музыка" value={music} onChange={useGameStore.getState().setMusic} />
+                <Slider id="s-effects" label="Эффекты" hint="Удары, взрывы, обвалы" value={effects} onChange={useGameStore.getState().setEffects} />
               </>
             )}
           </div>

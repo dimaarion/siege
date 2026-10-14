@@ -37,7 +37,10 @@ const useGameStore = create((set) => ({
     setPage:(el)=>set(()=>({page:el})),
     master:0,
     setMaster:(el)=>set(()=>({master:el})),
-
+    music:0,
+    setMusic:(el)=>set(()=>({music:el})),
+    effects:0,
+    setEffects:(el)=>set(()=>({effects:el})),
 }))
 
 
