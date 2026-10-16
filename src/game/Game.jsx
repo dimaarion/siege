@@ -7,6 +7,7 @@ import Bridge from "../scenes/Bridge.jsx";
 import WoodenTowerGoblin from "../scenes/WoodenTowerGoblin.jsx";
 import useGameStore from "../store.js";
 import {CameraControls} from "@react-three/drei";
+import {Levels} from "../scenes/Levels.jsx";
 
 
 export default function Game(){
@@ -14,6 +15,8 @@ export default function Game(){
     const loadedSceneBridge = useLoader(THREE.ObjectLoader, './json/Bridge.json');
     const shells = useLoader(THREE.ObjectLoader, './json/shells.json');
     const restartKey = useGameStore((state)=>state.restartKey)
+    const page = useGameStore((state)=>state.page)
+
     const cameraControlsRef = useRef(null)
     const ground = useMemo(()=>{
         return loadedScene.children.filter((el)=>el.name === "ground").map((el)=>{
@@ -40,19 +43,15 @@ export default function Game(){
     }, []);
 
     return <group>
-        <Physics key={restartKey} debug={true} >
+        <Physics gravity={[0,-9,0]} paused={page === "victory"} key={restartKey} debug={true} >
             <group>
                 {ground.map((el)=><RigidBody key={el.id} type={"fixed"} colliders={"cuboid"}>
                     <primitive  object={el} />
                 </RigidBody>)}
                 {catapult.map((el)=><Catapult key={el.id} params={el.children} position={el.position} shells={shells} />)}
-           {/* <Bridge scene={loadedSceneBridge} />*/}
-                <group rotation={[0,Math.PI,0]}>
-                    <WoodenTowerGoblin blockHeight={2}  floorHeight={30}  position={[0,0,-200]} />
-                </group>
-
+               <Levels />
             </group>
         </Physics>
-        <CameraControls makeDefault target={[0,0, 0]}   enablePan={false} maxPolarAngle={Math.PI / 2 + 0.01} minDistance={5} maxDistance={300} ref={cameraControlsRef} />
+        <CameraControls makeDefault target={[0,0,0]}   enablePan={false} maxPolarAngle={Math.PI / 2 + 0.01} minDistance={5} maxDistance={300} ref={cameraControlsRef} />
     </group>
 }

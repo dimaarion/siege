@@ -1,15 +1,164 @@
-export const PROJECTILES = [
-    { id: 1, density: 0.2, name: "hay" },        // тюк соломы
-    { id: 2, density: 0.7, name: "wood" },       // дубовое бревно
-    { id: 3, density: 0.92, name: "ice" },       // ледяная глыба
-    { id: 4, density: 1.5, name: "ground" },     // ком утрамбованной земли
-    { id: 5, density: 1.8, name: "brick" },      // обожжённая глина
-    { id: 6, density: 2.4, name: "concrete" },   // бетон
-    { id: 7, density: 2.7, name: "stone" },      // гранитный валун
-    { id: 8, density: 7.2, name: "cast_iron" },  // чугунное ядро
-    { id: 9, density: 11.3, name: "lead" },      // свинцовое ядро
+/**
+ * Характеристики материалов ядер. Единственное место, где хранятся плотности.
+ *
+ * density     — плотность; масса = плотность × объём (считает Rapier)
+ * restitution — упругость отскока
+ * friction    — трение
+ * breakForce  — сила удара, при которой ядро рассыпается (null — не ломается).
+ *               Значения ориентировочные, подберите по тестам.
+ * tier        — какой уровень катапульты нужен, чтобы выстрелить этим ядром
+ * visual      — внешний вид (цвет, шероховатость, металличность и т.д.)
+ */
+export const AMMO = [
+    {
+        id: 1, key: "hay", label: "Солома", density: 0.2,
+        restitution: 0.1, friction: 1.0, breakForce: 80, tier: 1,
+        visual: { color: "#d9b24c", roughness: 1, metalness: 0, bands: { count: 3, color: "#7a5a1e" } },
+    },
+    {
+        id: 2, key: "wood", label: "Дуб", density: 0.7,
+        restitution: 0.3, friction: 0.7, breakForce: null, tier: 1,
+        visual: { color: "#8b5a2b", roughness: 0.85, metalness: 0, bands: { count: 2, color: "#3a3d42" } },
+    },
+    {
+        id: 3, key: "ice", label: "Лёд", density: 0.92,
+        restitution: 0.15, friction: 0.05, breakForce: 400, tier: 1,
+        visual: { color: "#bfe6f5", roughness: 0.1, metalness: 0, flat: true, opacity: 0.8 },
+    },
+    {
+        id: 4, key: "ground", label: "Земля", density: 1.5,
+        restitution: 0.05, friction: 0.9, breakForce: 300, tier: 1,
+        visual: { color: "#6b4a2f", roughness: 1, metalness: 0, flat: true },
+    },
+    {
+        id: 5, key: "brick", label: "Кирпич", density: 1.8,
+        restitution: 0.2, friction: 0.8, breakForce: 900, tier: 2,
+        visual: { color: "#b5532f", roughness: 0.9, metalness: 0 },
+    },
+    {
+        id: 6, key: "concrete", label: "Бетон", density: 2.4,
+        restitution: 0.2, friction: 0.8, breakForce: null, tier: 2,
+        visual: { color: "#9a9a96", roughness: 0.95, metalness: 0 },
+    },
+    {
+        id: 7, key: "stone", label: "Гранит", density: 2.7,
+        restitution: 0.25, friction: 0.7, breakForce: null, tier: 2,
+        visual: { color: "#7c7f83", roughness: 0.8, metalness: 0.05, flat: true },
+    },
+    {
+        id: 8, key: "cast_iron", label: "Чугун", density: 7.2,
+        restitution: 0.2, friction: 0.5, breakForce: null, tier: 3,
+        visual: { color: "#2b2d31", roughness: 0.45, metalness: 0.9 },
+    },
+    {
+        id: 9, key: "lead", label: "Свинец", density: 11.3,
+        restitution: 0.05, friction: 0.6, breakForce: null, tier: 3,
+        visual: { color: "#6f7c8c", roughness: 0.35, metalness: 0.8 },
+    },
+];
 
+/** Найти материал по id (число) или ключу ("stone"). */
+export function getAmmo(type) {
+    const found = AMMO.find((a) => a.id === type || a.key === type);
+    if (!found) throw new Error(`Неизвестный материал ядра: ${type}`);
+    return found;
+}
+
+/** Масса шара: плотность × объём. */
+export function ammoMass(type, radius = 0.3) {
+    return getAmmo(type).density * (4 / 3) * Math.PI * radius ** 3;
+}
+
+/** Энергия удара ½·m·v². Удобна как основа урона по гоблинам и блокам. */
+export function impactEnergy(mass, speed) {
+    return 0.5 * mass * speed * speed;
+}
+
+// Прежний формат {id, density, name}. Строится из AMMO,
+// чтобы плотности не дублировались и не расходились.
+export const PROJECTILES = AMMO.map(({ id, density, key }) => ({ id, density, name: key }));
+
+/**
+ * Уровни и выдаваемые снаряды.
+ *
+ * lev          — номер уровня
+ * title        — короткое название
+ * enemies      — сколько гоблинов нужно победить
+ * armored      — сколько из них в шлемах (или король): им нужны тяжёлые ядра
+ * catapultTier — какой уровень катапульты нужен (см. tier в AMMO)
+ * minShots     — за сколько выстрелов уровень проходится по замыслу (проверить игрой)
+ * pule         — выдаваемые снаряды, id из AMMO, в порядке выстрелов
+ *
+ * Правила проходимости (проверяет validateLevels):
+ *  1. все id существуют, а tier ядра не выше catapultTier;
+ *  2. снарядов не меньше, чем minShots + 1: остаётся запас и можно получить звезду за снаряд;
+ *  3. тяжёлых ядер (плотность от HEAVY_DENSITY) не меньше, чем гоблинов в шлемах.
+ */
+export const LEVEL_PROJECTILES = [
+    // Мир 1. Деревня
+    { lev: 1,  title: "Первая башня",      enemies: 1, armored: 0, catapultTier: 1, minShots: 1, pule: [1,1,6,6,7,7,8,8,9] },
+    { lev: 2,  title: "Две башни",         enemies: 2, armored: 0, catapultTier: 1, minShots: 2, pule: [1,1,6,6,7,7,8,8,9] },
+    { lev: 3,  title: "Каменная стена",    enemies: 1, armored: 0, catapultTier: 1, minShots: 2, pule: [4,4,2,3] },
+    { lev: 4,  title: "Первая бочка",      enemies: 2, armored: 0, catapultTier: 1, minShots: 1, pule: [2,2,3,4] },
+    { lev: 5,  title: "Диапазон и ежи",    enemies: 3, armored: 0, catapultTier: 1, minShots: 3, pule: [2,2,3,4,4] },
+    // Мир 2. Замок
+    { lev: 6,  title: "Мост через ров",    enemies: 3, armored: 0, catapultTier: 2, minShots: 2, pule: [2,2,5,5] },
+    { lev: 7,  title: "Гоблин в шлеме",    enemies: 3, armored: 1, catapultTier: 2, minShots: 3, pule: [7,7,2,2,5] },
+    { lev: 8,  title: "Склад за стеной",   enemies: 4, armored: 0, catapultTier: 2, minShots: 3, pule: [5,6,7,2,3] },
+    { lev: 9,  title: "Цепная реакция",    enemies: 4, armored: 0, catapultTier: 2, minShots: 1, pule: [2,2,5] },
+    { lev: 10, title: "Король-гоблин",     enemies: 3, armored: 1, catapultTier: 2, minShots: 4, pule: [7,7,6,6,5,2] },
+    // Мир 3. Ледяные горы
+    { lev: 11, title: "Скользкий лёд",     enemies: 3, armored: 0, catapultTier: 3, minShots: 3, pule: [4,4,5,2,3] },
+    { lev: 12, title: "Подвешенные глыбы", enemies: 4, armored: 0, catapultTier: 3, minShots: 2, pule: [2,2,2,5] },
+    { lev: 13, title: "Бочки во льду",     enemies: 4, armored: 0, catapultTier: 3, minShots: 3, pule: [7,6,5,2,2] },
+    { lev: 14, title: "Три платформы",     enemies: 5, armored: 0, catapultTier: 3, minShots: 4, pule: [5,5,6,2,2,3] },
+    { lev: 15, title: "Ледяной король",    enemies: 3, armored: 3, catapultTier: 3, minShots: 5, pule: [8,8,7,7,6,5,2] },
+    // Мир 4. Вулкан
+    { lev: 16, title: "Лавовые острова",   enemies: 4, armored: 0, catapultTier: 3, minShots: 4, pule: [6,6,5,7,2,2,4] },
+    { lev: 17, title: "Топливная цепочка", enemies: 5, armored: 0, catapultTier: 3, minShots: 3, pule: [5,6,7,2,2,4] },
+    { lev: 18, title: "Движущиеся платформы", enemies: 5, armored: 0, catapultTier: 3, minShots: 4, pule: [2,2,5,6,7,3,1] },
+    { lev: 19, title: "Лавовый мост",      enemies: 5, armored: 2, catapultTier: 3, minShots: 4, pule: [8,8,7,6,5,2,2] },
+    { lev: 20, title: "Крепость короля",   enemies: 6, armored: 3, catapultTier: 3, minShots: 7, pule: [9,9,8,8,7,6,5,2,2] },
 ]
+
+// Ядро считается тяжёлым, если его плотность не меньше этого значения (гранит и тяжелее)
+export const HEAVY_DENSITY = 2.7;
+
+/**
+ * Проверка данных уровней. Возвращает список проблем, пустой список значит всё в порядке.
+ * Вызовите один раз при старте в режиме разработки.
+ * Это проверка данных, а не игры: minShots всё равно нужно подтвердить прохождением.
+ */
+export function validateLevels(levels = LEVEL_PROJECTILES) {
+    const problems = [];
+    levels.forEach((level, index) => {
+        const where = `Уровень ${level.lev}`;
+        if (level.lev !== index + 1) problems.push(`${where}: номера должны идти подряд, ожидался ${index + 1}`);
+
+        const ammo = [];
+        level.pule.forEach((id) => {
+            const a = AMMO.find((m) => m.id === id);
+            if (!a) problems.push(`${where}: неизвестный id ядра ${id}`);
+            else ammo.push(a);
+        });
+
+        ammo.filter((a) => a.tier > level.catapultTier).forEach((a) =>
+            problems.push(`${where}: ядро "${a.key}" (tier ${a.tier}) требует катапульту выше ${level.catapultTier}`)
+        );
+
+        if (level.pule.length < level.minShots + 1)
+            problems.push(`${where}: снарядов ${level.pule.length}, нужно не меньше ${level.minShots + 1} (minShots + запас)`);
+
+        const heavy = ammo.filter((a) => a.density >= HEAVY_DENSITY).length;
+        if (heavy < level.armored)
+            problems.push(`${where}: тяжёлых ядер ${heavy}, а гоблинов в шлемах ${level.armored}`);
+
+        if (level.armored > level.enemies)
+            problems.push(`${where}: гоблинов в шлемах (${level.armored}) больше, чем всего врагов (${level.enemies})`);
+    });
+    return problems;
+}
+
 
 export const DEFAULT_SETTINGS = {
     master: 80,
@@ -19,4 +168,103 @@ export const DEFAULT_SETTINGS = {
     fps: false,
     sensitivity: 50,
     aimLine: true,
+}
+
+export function routable(n) {
+    return Math.PI / 180 * n;
+}
+
+const isAmmo = (v) => AMMO.some((a) => a.id === v || a.key === v);
+
+/**
+ * Материал снаряда из элемента pule. В pule может лежать просто id или ключ ("hay", 2),
+ * либо объект с полем type, material, name или id. Если не найден, будет гранит.
+ */
+export function materialOf(el) {
+    if (isAmmo(el)) return el;
+    const found = [el?.type, el?.material, el?.name, el?.id].find(isAmmo);
+    return found ?? "stone";
+}
+
+/**
+ * Выбор следующего ядра. Переносит ядро с номером index на место, которое
+ * зарядится следующим (puleStep), остальные сдвигаются, их порядок сохраняется.
+ * Уже заряженные ядра (номера меньше puleStep) не трогаются.
+ * Возвращает новый массив или тот же, если менять нечего.
+ */
+export function pickNext(pule, puleStep, index) {
+    if (index <= puleStep || index >= pule.length) return pule;
+    const next = pule.slice();
+    const [chosen] = next.splice(index, 1);
+    next.splice(puleStep, 0, chosen);
+    return next;
+}
+
+/**
+ * Модель выстрела для линии прицеливания. Числа нужно подобрать по игре:
+ * линия совпадёт с настоящим полётом, только если ядро запускается с такой же скоростью.
+ *
+ * energyPerForce  — энергия выстрела на единицу force (store.force)
+ * baseAngleDeg    — угол вылета при slant = 0
+ * angleDegPerSlant — на сколько градусов меняется угол от единицы slant
+ */
+export const LAUNCH = {
+    energyPerForce: 60,
+    baseAngleDeg: 30,
+    angleDegPerSlant: 5,
+    minAngleDeg: 5,
+    maxAngleDeg: 80,
+    maxSpeed: 60,
+};
+
+/**
+ * Начальная скорость ядра [x, y, z]. Энергия задаётся силой выстрела,
+ * поэтому тяжёлое ядро летит медленнее: v = sqrt(2·E / m).
+ * direction — единичный вектор [x, z] горизонтального направления выстрела.
+ */
+export function launchVelocity({ force, slant, mass, direction = [0, 1], config = LAUNCH }) {
+    const speed = Math.min(config.maxSpeed, Math.sqrt((2 * config.energyPerForce * force) / mass));
+    const deg = Math.min(
+        config.maxAngleDeg,
+        Math.max(config.minAngleDeg, config.baseAngleDeg + config.angleDegPerSlant * slant)
+    );
+    const angle = (deg * Math.PI) / 180;
+    const horizontal = speed * Math.cos(angle);
+    return [direction[0] * horizontal, speed * Math.sin(angle), direction[1] * horizontal];
+}
+
+/**
+ * Точки навесной траектории без учёта столкновений: p = p0 + v·t + g·t²/2.
+ * Останавливается на уровне земли groundY. gravity должна совпадать с гравитацией <Physics>.
+ */
+export function predictTrajectory({
+    origin,
+    velocity,
+    gravity = 9.81,
+    dt = 0.06,
+    steps = 60,
+    groundY = -Infinity,
+}) {
+    const points = [[...origin]];
+    for (let i = 1; i <= steps; i++) {
+        const t = i * dt;
+        const p = [
+            origin[0] + velocity[0] * t,
+            origin[1] + velocity[1] * t - 0.5 * gravity * t * t,
+            origin[2] + velocity[2] * t,
+        ];
+        if (p[1] < groundY) {
+            // Находим момент пересечения земли и ставим туда последнюю точку
+            const a = 0.5 * gravity, b = -velocity[1], c = groundY - origin[1];
+            const tHit = (-b + Math.sqrt(b * b - 4 * a * c)) / (2 * a);
+            points.push([
+                origin[0] + velocity[0] * tHit,
+                groundY,
+                origin[2] + velocity[2] * tHit,
+            ]);
+            break;
+        }
+        points.push(p);
+    }
+    return points;
 }

@@ -212,14 +212,15 @@ function Segmented({ id, label, hint, value, options, onChange = ()=>{} }) {
 
 /* ---------- страница ---------- */
 
-export default function PausePage({ open, onReset = ()=>{} , onResume = ()=>{} , onRestart = ()=>{}, onMenu = ()=>{} , title, stats }) {
+export default function PausePage({ onReset = ()=>{},  onMenu = ()=>{} , title, stats }) {
   const [tab, setTab] = useState('sound')
   const rootRef = useRef(null)
   const resumeRef = useRef(null)
   const master = useGameStore((state)=>state.master)
   const music = useGameStore((state)=>state.music)
   const effects = useGameStore((state)=>state.effects)
-  if (!open) return null
+  const pause = useGameStore((state)=>state.pause)
+  if (!pause) return null
   return (
     <div
       ref={rootRef}
@@ -249,21 +250,27 @@ export default function PausePage({ open, onReset = ()=>{} , onResume = ()=>{} ,
             <button
               ref={resumeRef}
               type="button"
-              onClick={onResume}
-              className={`rounded-sm bg-red-700 px-4 py-3 text-lg font-bold transition duration-150 hover:brightness-110 active:scale-95 ${focus}`}
+              onClick={()=>{
+                useGameStore.getState().pauseStop()
+              }}
+              className={`rounded-sm cursor-pointer bg-red-700 px-4 py-3 text-lg font-bold transition duration-150 hover:brightness-110 active:scale-95 ${focus}`}
             >
               Продолжить
             </button>
             <button
               type="button"
-              onClick={onRestart}
+              onPointerDown={()=>{
+                useGameStore.getState().restartKeyStep()
+              }}
               className={`rounded-sm border border-white/40 px-4 py-3 text-lg transition-colors duration-150 hover:border-white ${focus}`}
             >
               Заново
             </button>
             <button
               type="button"
-              onClick={onMenu}
+               onPointerDown={()=>{
+                useGameStore.getState().setPage("start")
+              }}
               className={`rounded-sm border border-white/40 px-4 py-3 text-lg transition-colors duration-150 hover:border-white ${focus}`}
             >
               В меню

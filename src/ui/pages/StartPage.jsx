@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import {useEffect, useMemo, useState} from 'react'
+import useGameStore from "../../store.js";
 
 /**
  * Стартовая страница игры «Осада» — один экран без прокрутки браузера.
@@ -114,25 +115,18 @@ function TowerArt() {
 export default function StartPage({
   levels = DEFAULT_LEVELS,
   progress = { stars: {} },
-  onPlay = () => {},
   repoUrl = '#',
 }) {
   const [tab, setTab] = useState('levels')
-
+    const level = useGameStore((state)=>state.level)
   const stars = progress?.stars ?? {}
-  const isOpen = (i) => i === 0 || (stars[i - 1] ?? 0) > 0
+  const isOpen = (i) => i === 0 || (stars[i - 1] ?? 0) > level
+
+
+
 
   // с нуля начинаем с первого уровня, дальше продолжаем с последнего открытого
   const hasProgress = Object.values(stars).some((s) => s > 0)
-  const resumeIndex = useMemo(() => {
-    if (!hasProgress) return 0
-    let last = 0
-    levels.forEach((_, i) => {
-      if (i === 0 || (stars[i - 1] ?? 0) > 0) last = i
-    })
-    return last
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasProgress, levels.length, JSON.stringify(stars)])
 
   // искры: фиксированные «случайные» параметры, чтобы страница не прыгала при перерисовке
   const sparks = useMemo(
@@ -206,7 +200,10 @@ export default function StartPage({
           <div className="mt-[4vh] flex flex-wrap gap-3">
             <button
               type="button"
-              onClick={() => onPlay(resumeIndex)}
+              onPointerDown={() =>{
+                  useGameStore.getState().setPage("game")
+                  useGameStore.getState().puleLevelStart(level)
+              }}
               className={`rounded-sm mb-6 bg-red-700 px-8 py-3 text-lg font-bold transition duration-150 hover:brightness-110 active:scale-95 ${focus}`}
             >
               {hasProgress ? 'Продолжить' : 'Играть'}
@@ -246,7 +243,10 @@ export default function StartPage({
                     <button
                       type="button"
                       disabled={!open}
-                      onClick={() => onPlay(i)}
+                      onClick={() => {
+                          useGameStore.getState().puleLevelStart(i + 1)
+                          useGameStore.getState().setLevel(i + 1)
+                      }}
                       className={`flex h-full w-full flex-col justify-between rounded-sm border bg-white/5 p-3 text-left transition-colors duration-150 ${focus} ${
                         open ? 'border-white/10 hover:border-red-700' : 'cursor-not-allowed border-white/10 opacity-50'
                       }`}

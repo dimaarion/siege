@@ -1,20 +1,26 @@
 import './App.css'
 import {Canvas} from "@react-three/fiber";
-import {CameraControls, OrbitControls, Sky} from "@react-three/drei";
+import {Sky} from "@react-three/drei";
 import Game from "./game/Game.jsx";
 import BottomMenu from "./ui/BottomMenu.jsx";
 import TopPanel from "./ui/TopPanel.jsx";
-import {useEffect, useRef} from "react";
-import StartMenu from "./ui/pages/StartMenu.jsx";
-import StartPage from "./ui/pages/StartPage.jsx";
 import PausePage from "./ui/pages/PausePage.jsx";
+import {Suspense} from "react";
+import Load from "./ui/pages/Load.jsx";
+import StartPage from "./ui/pages/StartPage.jsx";
+import useGameStore from "./store.js";
+import Victory from "./ui/pages/Victory.jsx";
+
+
 
 function App() {
+    const page = useGameStore((state)=>state.page)
 
 
   return (
     <>
-      <Canvas shadows  camera={{
+        <Suspense fallback={<Load />} >
+      <Canvas style={{zIndex:10}} shadows  camera={{
         fov: 30, position: [16, 50, -100],
       }}>
           <fog attach="fog" args={['#dff1ff', 200, 500]} />
@@ -34,13 +40,18 @@ function App() {
 
 
       </Canvas>
-        <TopPanel />
-        <BottomMenu />
-        <div className={"fixed z-50 top-0 left-0 right-0"}>
-            {/*<StartPage />*/}
-            <PausePage  open={true} />
-        </div>
+            {page === "game"?<div>
+                <TopPanel/>
+                <BottomMenu/>
+                <PausePage />
+            </div>:""}
 
+
+            {page === "start"?<div className={"fixed z-50 top-0 left-0 right-0"}>
+                <StartPage/>
+            </div>:""}
+            {page === "victory"?<Victory/>:""}
+        </Suspense>
     </>
   )
 }

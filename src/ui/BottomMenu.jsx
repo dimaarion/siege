@@ -1,4 +1,5 @@
 import useGameStore from "../store.js";
+import AmmoSelector from "./AmmoSelector.jsx";
 
 
 export default function BottomMenu(){
@@ -10,18 +11,20 @@ export default function BottomMenu(){
 
     return <div>
         <div className={"fixed right-0 bottom-0 w-40 h-25 z-20"}>
-            <div onPointerDown={()=>{
+
+                <AmmoSelector radius={5} />
+
+
+            <div onClick={()=>{
                 useGameStore.getState().shotStart()
-            }} onPointerUp={()=>{
-                useGameStore.getState().shotMin()
-                useGameStore.getState().rechargeStop()
-            }} className={"w-37 h-15 mt-3 flex justify-center rounded-xl bg-red-700"}><div className={"flex mt-3 text-white text-2xl"}>
+            }}  className={"w-37 h-15 mt-3 flex justify-center rounded-xl bg-red-700"}><div className={"flex mt-3 text-white text-2xl"}>
                 Выстрел
             </div></div>
         </div>
         <div className={"fixed left-3 bottom-20 w-50 h-50 z-20"}>
+
             <div className={"w-full flex justify-center"}>
-                <div className={"relative opacity-20 w-[180px] h-[180px]"}>
+                <div className={"relative opacity-80 w-[180px] h-[180px]"}>
                     <div className={"absolute left-0 m-auto w-[60px] h-[60px] right-0 top-0"} onPointerDown={() => {
                         useGameStore.getState().movementForward()
                     }} onPointerUp={() => {
@@ -86,16 +89,17 @@ export default function BottomMenu(){
                 <div className={"w-1/2  bg-gray-900"}>
                     <input onChange={(e)=>{
                         useGameStore.getState().setForce(e.target.value)
-                    }} value={force} className={"w-full appearance-none bg-red-700"} type={"range"} min={1} max={50} step={0.1}/>
+                    }} value={force} className={"w-full appearance-none bg-red-700"} type={"range"} min={5} max={50} step={0.1}/>
                <div className={"p-2 text-xl   text-gray-50 text-center"}>Сила выстрела</div>
                 </div>
                 <div className={"w-1/2  bg-gray-900"}>
                     <input onChange={(e)=>{
                         useGameStore.getState().setSlant(e.target.value)
-                    }} value={slant} className={"w-full  appearance-none bg-red-700"} type={"range"} min={0} max={3} step={0.01}/>
+                    }} value={slant} className={"w-full  appearance-none bg-red-700"} type={"range"} min={0} max={1} step={0.01}/>
                     <div className={"p-2 text-xl   text-gray-50 text-center"}>Угол наклона</div>
                 </div>
             </div>
         </div>
+
     </div>
 }
