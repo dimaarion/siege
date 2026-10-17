@@ -1,6 +1,6 @@
 import useGameStore from "../store.js";
 import {useEffect} from "react";
-import {LEVEL_PROJECTILES} from "../action.js";
+import {generateTower, LEVEL_PROJECTILES} from "../action.js";
 
 export default function TopPanel(){
     const pule = useGameStore((state)=>state.pule)
@@ -24,8 +24,8 @@ export default function TopPanel(){
         })
     }, [enemies, level]);
     useEffect(() => {
-      console.log(bricks)
-    }, [bricks]);
+      console.log(generateTower())
+    }, []);
     
     return <div className={"fixed flex justify-between z-20 top-0 left-0 right-0 h-20 w-full bg-gray-950"}>
         <div className={"text-gray-50 text-2xl flex self-center ml-4"}>Очки {scope}</div>

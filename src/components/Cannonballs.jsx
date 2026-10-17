@@ -126,7 +126,7 @@ const Cannonball = forwardRef(function Cannonball(
       {...(position ? { position } : {})}
       colliders={false}
       onContactForce={ammo.breakForce ? handleForce : undefined}
-      userData={{ kind: "ammo", type: ammo.key, mass: ammoMass(ammo.key, radius) }}
+      userData={{ kind: "ammo", type: ammo.key, mass: ammoMass(ammo.key, radius),name:"pule" }}
       {...rest}
     >
       <BallCollider

@@ -57,6 +57,15 @@ export const AMMO = [
     },
 ];
 
+// Оттенки дерева — блоки чередуют цвета, чтобы башня выглядела живее
+export const WOOD = ['#a8743f', '#b9824a', '#9a6a38', '#c28d55']
+
+export const GOBLIN_SKIN = '#6fb83f'
+export const GOBLIN_DARK = '#4f8a2b'
+
+// Высота базовой модели гоблина (до макушки), в её собственных единицах
+export const GOBLIN_BASE_HEIGHT = 1.4
+
 /** Найти материал по id (число) или ключу ("stone"). */
 export function getAmmo(type) {
     const found = AMMO.find((a) => a.id === type || a.key === type);
@@ -96,7 +105,19 @@ export const PROJECTILES = AMMO.map(({ id, density, key }) => ({ id, density, na
  */
 export const LEVEL_PROJECTILES = [
     // Мир 1. Деревня
-    { lev: 1,  title: "Первая башня",      enemies: 1, armored: 0, catapultTier: 1, minShots: 1, pule: [1,1,6,6,7,7,8,8,9] },
+    { lev: 1,  title: "Первая башня",
+        enemies: 1,
+        armored: 0,
+        catapultTier: 1,
+        minShots: 1,
+        pule: [1,1,6,6,7,7,8,8,9],
+        tower:[
+            {
+                id: 1,
+                object:generateTower({floors:8,width:5,enemies:[1,5]})
+            }
+        ]
+    },
     { lev: 2,  title: "Две башни",         enemies: 2, armored: 0, catapultTier: 1, minShots: 2, pule: [1,1,6,6,7,7,8,8,9] },
     { lev: 3,  title: "Каменная стена",    enemies: 1, armored: 0, catapultTier: 1, minShots: 2, pule: [4,4,2,3] },
     { lev: 4,  title: "Первая бочка",      enemies: 2, armored: 0, catapultTier: 1, minShots: 1, pule: [2,2,3,4] },
@@ -267,4 +288,51 @@ export function predictTrajectory({
         points.push(p);
     }
     return points;
+}
+
+
+export function generateTower({ floors = 4, width = 3,enemies = [1,2,3] } = {}) {
+    const blockSize = 1;         // Толщина / ширина колонн
+    const floorHeight = 4;       // Высота колонн (этажа)
+    const slabThickness = 0.5;   // Толщина плиты-крышки
+    const floorGap = 5;        // Зазор между этажами (воздух между крышкой и верхними колоннами)
+    const span = width;          // Радиус расстановки колонн от центра
+
+    let res = [];
+
+    for (let j = 0; j < floors; j++) {
+        // Полная высота одного этажа вместе с плитой и зазором до следующего
+        const levelHeight = floorHeight + slabThickness + floorGap;
+        const baseY = j * levelHeight;
+
+        // Центр колонн текущего этажа по оси Y
+        const pillarY = baseY + floorHeight / 2;
+
+        // Центр крышки текущего этажа (лежит строго на колоннах)
+        const slabY = baseY + floorHeight + slabThickness / 2 + 0.5;
+
+        // Элементы этажа: 4 колонны по углам + 1 крышка посередине
+        const towerElements = [
+            [-span, pillarY, -span], // Задняя левая колонна
+            [ span, pillarY, -span], // Задняя правая колонна
+            [-span, pillarY,  span], // Передняя левая колонна
+            [ span, pillarY,  span], // Передняя правая колонна
+            [ 0,    slabY,    0   ] // Крышка этажа
+        ];
+
+        towerElements.forEach((el, i) => {
+            const isSlab = i === 4;
+            res.push({
+                type: isSlab ? "stone_slab" : "stone_block",
+                enemies:enemies.find((em)=>em === j) && i === 4,
+                position: el,
+                scale: isSlab
+                    ? [span + blockSize * 2, slabThickness, span + blockSize * 2] // Размер плиты
+                    : [blockSize, floorHeight, blockSize]                         // Размер колонны
+            });
+        });
+    }
+
+    console.log(res);
+    return res;
 }

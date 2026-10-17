@@ -5,7 +5,7 @@ import useGameStore from "../store.js";
 import Road from "../components/Road.jsx";
 import Trees from "../components/Trees.jsx";
 import Hedgehog from "../components/Hedgehog.jsx";
-import {Sensor} from "../components/Objects.jsx";
+import {Goblin, Sensor} from "../components/Objects.jsx";
 
 // Оттенки дерева — блоки чередуют цвета, чтобы башня выглядела живее
 const WOOD = ['#a8743f', '#b9824a', '#9a6a38', '#c28d55']
@@ -75,75 +75,7 @@ function Bricks({ items }) {
 
 
 
-// Часть гоблина. s — масштаб, solid — есть коллайдер, иначе чисто декор
-function Part({ position, size, color, s, solid = false }) {
-  const p = position.map((v) => v * s)
-  const sz = size.map((v) => v * s)
-  return (
-    <>
-      <mesh position={p} castShadow>
-        <boxGeometry args={sz} />
-        <meshStandardMaterial color={color} roughness={0.8} />
-      </mesh>
-      {solid && (
-        <CuboidCollider position={p} args={[sz[0] / 2, sz[1] / 2, sz[2] / 2]} />
-      )}
-    </>
-  )
-}
 
-// Гоблин из блоков — одно тело с несколькими коллайдерами.
-// Низ ног находится в y = 0 относительно position.
-function Goblin({ position = [0, 0, 0], height }) {
-  const s = height / GOBLIN_BASE_HEIGHT
-  return (
-    <RigidBody
-      position={position}
-      colliders={false}
-      density={0.8}
-      friction={0.7}
-      restitution={0.1}
-      userData={{name:"goblin",active:false}}
-    >
-      {/* ноги */}
-      <Part s={s} solid position={[-0.2, 0.2, 0]} size={[0.25, 0.4, 0.25]} color={GOBLIN_DARK} />
-      <Part s={s} solid position={[0.2, 0.2, 0]} size={[0.25, 0.4, 0.25]} color={GOBLIN_DARK} />
-
-      {/* туловище и пояс */}
-      <Part s={s} solid position={[0, 0.65, 0]} size={[0.7, 0.5, 0.4]} color={GOBLIN_SKIN} />
-      <Part s={s} position={[0, 0.5, 0]} size={[0.74, 0.14, 0.44]} color="#6b4a2b" />
-
-      {/* руки */}
-      <Part s={s} solid position={[-0.46, 0.65, 0]} size={[0.18, 0.45, 0.18]} color={GOBLIN_SKIN} />
-      <Part s={s} solid position={[0.46, 0.65, 0]} size={[0.18, 0.45, 0.18]} color={GOBLIN_SKIN} />
-
-      {/* дубинка в правой руке */}
-      <Part s={s} position={[0.5, 1.0, 0.1]} size={[0.14, 0.5, 0.14]} color="#7a5230" />
-      <Part s={s} position={[0.5, 1.3, 0.1]} size={[0.22, 0.2, 0.22]} color="#7a5230" />
-
-      {/* голова */}
-      <Part s={s} solid position={[0, 1.15, 0]} size={[0.6, 0.5, 0.5]} color={GOBLIN_SKIN} />
-
-      {/* острые уши */}
-      <Part s={s} position={[-0.48, 1.25, 0]} size={[0.36, 0.12, 0.1]} color={GOBLIN_SKIN} />
-      <Part s={s} position={[0.48, 1.25, 0]} size={[0.36, 0.12, 0.1]} color={GOBLIN_SKIN} />
-
-      {/* нос */}
-      <Part s={s} position={[0, 1.1, 0.3]} size={[0.12, 0.14, 0.14]} color={GOBLIN_DARK} />
-
-      {/* глаза */}
-      <Part s={s} position={[-0.15, 1.24, 0.26]} size={[0.14, 0.14, 0.04]} color="#f5f5dc" />
-      <Part s={s} position={[0.15, 1.24, 0.26]} size={[0.14, 0.14, 0.04]} color="#f5f5dc" />
-      <Part s={s} position={[-0.15, 1.24, 0.29]} size={[0.06, 0.06, 0.03]} color="#111" />
-      <Part s={s} position={[0.15, 1.24, 0.29]} size={[0.06, 0.06, 0.03]} color="#111" />
-
-      {/* рот и зубы */}
-      <Part s={s} position={[0, 0.98, 0.26]} size={[0.3, 0.07, 0.04]} color="#2a1a14" />
-      <Part s={s} position={[-0.1, 1.02, 0.28]} size={[0.05, 0.06, 0.03]} color="#fffbe6" />
-      <Part s={s} position={[0.1, 1.02, 0.28]} size={[0.05, 0.06, 0.03]} color="#fffbe6" />
-    </RigidBody>
-  )
-}
 
 
 

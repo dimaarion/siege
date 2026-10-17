@@ -148,7 +148,7 @@ export default function Road({
   ],
   width = 20,
   thickness = 1,
-  position = [0, 0.6, 0],
+  position = [0, 0.8, 0],
   color = '#8c8a82',
   seamColor = '#4a4740',
   edgeStones = true,

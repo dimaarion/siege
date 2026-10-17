@@ -3,8 +3,6 @@ import Catapult from "../components/Catapult.jsx";
 import * as THREE from "three";
 import {useLoader} from "@react-three/fiber";
 import {useEffect, useMemo, useRef} from "react";
-import Bridge from "../scenes/Bridge.jsx";
-import WoodenTowerGoblin from "../scenes/WoodenTowerGoblin.jsx";
 import useGameStore from "../store.js";
 import {CameraControls} from "@react-three/drei";
 import {Levels} from "../scenes/Levels.jsx";
@@ -41,6 +39,7 @@ export default function Game(){
             //  console.log(r)
         });
     }, []);
+
 
     return <group>
         <Physics gravity={[0,-9,0]} paused={page === "victory"} key={restartKey} debug={true} >
