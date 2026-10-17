@@ -76,6 +76,7 @@ export function Goblin({ position = [0, 0, 0], height }) {
             position={position}
             colliders={false}
             type={"dynamic"}
+            ccd={true}
             rotation={[0,routable(180),0]}
             enabledRotations={[false,true,false]}
             userData={{name:"goblin",active:false}}
@@ -116,7 +117,7 @@ export function Goblin({ position = [0, 0, 0], height }) {
             <Part s={s} position={[0, 0.98, 0.26]} size={[0.3, 0.07, 0.04]} color="#2a1a14" />
             <Part s={s} position={[-0.1, 1.02, 0.28]} size={[0.05, 0.06, 0.03]} color="#fffbe6" />
             <Part s={s} position={[0.1, 1.02, 0.28]} size={[0.05, 0.06, 0.03]} color="#fffbe6" />
-            <BallCollider position={[0,height / 2,0]} args={[height / 2]} />
+            <BallCollider ccd={true} position={[0,height / 2,0]} args={[height / 2]} />
         </RigidBody>
     )
 }
@@ -171,7 +172,7 @@ console.log(enemies)
                     })
                 }
             }}
-            colliderNodes={[ <CuboidCollider density={0.2} sensor={true}  args={[1,1, 1]} />]}
+            colliderNodes={[ <CuboidCollider  density={0.2} sensor={true}  args={[1,1, 1]} />]}
         >
             <instancedMesh   frustumCulled={false} args={[undefined, undefined, stone_block.length]} count={stone_block.length} name={"brick"} >
                 <boxGeometry args={[2, 2, 2]} />
