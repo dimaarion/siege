@@ -1,5 +1,5 @@
 import useGameStore from "../store.js";
-import {useEffect} from "react";
+import {useEffect, useMemo} from "react";
 import {generateTower, LEVEL_PROJECTILES} from "../action.js";
 
 export default function TopPanel(){
@@ -10,6 +10,13 @@ export default function TopPanel(){
     const scope = useGameStore((state)=>state.scope)
     const enemies = useGameStore((state)=>state.enemies)
     const bricks = useGameStore((state)=>state.bricks)
+    const fallenBrick = useGameStore((state)=>state.fallenBrick)
+    const recharge = useGameStore((state)=>state.recharge)
+    const page = useGameStore((state)=>state.page)
+
+    const destruction = useMemo(()=>{
+        return (fallenBrick / bricks * 100).toFixed(0) // процент разрушенных объектов, 0–100
+    },[bricks, fallenBrick])
 
     useEffect(() => {
         useGameStore.getState().puleLevelStart(level)
@@ -17,15 +24,23 @@ export default function TopPanel(){
 
     useEffect(() => {
         LEVEL_PROJECTILES.filter((el)=>el.lev === level).forEach((el)=>{
-            if(el.enemies === enemies){
+            if(el.enemies === enemies && (fallenBrick / 2) * 100 / bricks >= 50){
                 useGameStore.getState().setPage("victory")
+            }else if(!recharge && (pule.length - puleStep) <= 0){
+                const time = setTimeout(()=>{
+                      useGameStore.getState().setPage("game-over")
+                },5000)
+                return ()=>clearTimeout(time)
             }
 
         })
-    }, [enemies, level]);
+    }, [bricks, enemies, fallenBrick, level, pule.length, puleStep, recharge]);
+
+
     useEffect(() => {
-      console.log(generateTower())
-    }, []);
+        console.log(fallenBrick , bricks )
+        console.log((fallenBrick / 2) * 100 / bricks )
+    }, [bricks, fallenBrick]);
     
     return <div className={"fixed flex justify-between z-20 top-0 left-0 right-0 h-20 w-full bg-gray-950"}>
         <div className={"text-gray-50 text-2xl flex self-center ml-4"}>Очки {scope}</div>
@@ -49,6 +64,8 @@ export default function TopPanel(){
             useGameStore.getState().puleStepRestart()
             useGameStore.getState().setSlant(1)
             useGameStore.getState().rechargeStop()
+            useGameStore.getState().setFallenBrickRestart()
+            useGameStore.getState().bricksRestart()
         }} className={"absolute left-2 top-22 bg-red-700 text-white rounded-2xl"}>
             <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="currentColor"
                  className="bi bi-arrow-counterclockwise" viewBox="0 0 16 16">

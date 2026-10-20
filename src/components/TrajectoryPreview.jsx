@@ -37,7 +37,7 @@ export function TrajectoryPreview({
 
     const points = useMemo(() => {
         // 1. Переводим угол в радианы
-        const angleRad = -THREE.MathUtils.degToRad(22 + angleDeg * 20)
+        const angleRad = -THREE.MathUtils.degToRad(10 + angleDeg * 20)
 
         // 2. Рассчитываем векторы скорости
         const vY = force * Math.sin(angleRad);

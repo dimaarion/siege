@@ -1,0 +1,11 @@
+newmtl tripo_material_e229cfee_2dae_4d88_9c80_5314aec3a07b
+Kd 1.000000000 1.000000000 1.000000000
+d 1.000000000
+illum 2
+map_Kd goblin+3d+model_basecolor.jpg
+Pr 1.000000000
+Pm 1.000000000
+map_Pr goblin+3d+model_roughness.png
+map_Pm goblin+3d+model_metallic.png
+norm goblin+3d+model_normal.png
+

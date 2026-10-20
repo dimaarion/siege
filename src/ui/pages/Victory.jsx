@@ -51,7 +51,7 @@ export default function Victory({
   const  enemiesTotal = LEVEL_PROJECTILES.find((el)=>el.lev === level).enemies
 
   const destruction = useMemo(()=>{
-    return (fallenBrick / bricks * 100).toFixed(0) // процент разрушенных объектов, 0–100
+    return ((fallenBrick / 2) * 100 / bricks).toFixed(0) // процент разрушенных объектов, 0–100
   },[bricks, fallenBrick])
   const rows = useMemo(
     () => [

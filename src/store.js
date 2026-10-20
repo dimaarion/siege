@@ -67,6 +67,7 @@ const useGameStore = create((set) => ({
     setDestruction:(el)=>set(()=>({destruction:el})),
     bricks:0,
     setBricks:(el)=>set((state)=>({bricks:state.bricks + el})),
+    bricksRestart:()=>set(()=>({bricks:0})),
     fallenBrick:0,
     setFallenBrick:()=>set((state)=>({fallenBrick:state.fallenBrick + 1})),
     setFallenBrickRestart:()=>set(()=>({fallenBrick:0})),

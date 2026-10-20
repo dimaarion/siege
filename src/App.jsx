@@ -10,6 +10,7 @@ import Load from "./ui/pages/Load.jsx";
 import StartPage from "./ui/pages/StartPage.jsx";
 import useGameStore from "./store.js";
 import Victory from "./ui/pages/Victory.jsx";
+import GameOver from "./ui/pages/GameOver.jsx";
 
 
 
@@ -45,12 +46,12 @@ function App() {
                 <BottomMenu/>
                 <PausePage />
             </div>:""}
-
-
             {page === "start"?<div className={"fixed z-50 top-0 left-0 right-0"}>
                 <StartPage/>
             </div>:""}
             {page === "victory"?<Victory/>:""}
+            {page === "game-over"?<GameOver/>:""}
+
         </Suspense>
     </>
   )

@@ -1,26 +1,24 @@
-import {Physics, RigidBody} from "@react-three/rapier";
+import {Physics} from "@react-three/rapier";
 import Catapult from "../components/Catapult.jsx";
 import * as THREE from "three";
 import {useLoader} from "@react-three/fiber";
-import {useEffect, useMemo, useRef} from "react";
+import {useMemo} from "react";
 import useGameStore from "../store.js";
-import {CameraControls} from "@react-three/drei";
+import {useAnimations, useGLTF} from "@react-three/drei";
 import {Levels} from "../scenes/Levels.jsx";
+import Camera from "../components/Camera.jsx";
+import {Ground} from "../components/Ground.jsx";
 
 
 export default function Game(){
     const loadedScene = useLoader(THREE.ObjectLoader, './json/Scene.json');
-    const loadedSceneBridge = useLoader(THREE.ObjectLoader, './json/Bridge.json');
     const shells = useLoader(THREE.ObjectLoader, './json/shells.json');
+    const {nodes, materials, animations} = useGLTF("./model/scene.glb")
+    const {ref, actions} = useAnimations(animations);
+
     const restartKey = useGameStore((state)=>state.restartKey)
     const page = useGameStore((state)=>state.page)
 
-    const cameraControlsRef = useRef(null)
-    const ground = useMemo(()=>{
-        return loadedScene.children.filter((el)=>el.name === "ground").map((el)=>{
-            return el
-        })
-    },[loadedScene.children])
 
     const catapult = useMemo(()=>{
         return loadedScene.children.filter((el)=>el.name === "catapult").map((el)=>{
@@ -28,29 +26,14 @@ export default function Game(){
         })
     },[loadedScene.children])
 
-
-
-    useEffect(() => {
-        cameraControlsRef.current?.setLookAt(
-            50, 20, -150, // Новая позиция камеры
-            0, 20, 100,  // Куда смотрит камера (target)
-            true      // Включить плавную анимацию
-        ).then((r)=>{
-            //  console.log(r)
-        });
-    }, []);
-
-
-    return <group>
-        <Physics gravity={[0,-9,0]} paused={page === "victory"} key={restartKey} debug={true} >
+    return <group ref={ref}>
+        <Physics gravity={[0,-10,0]} paused={page === "victory"} key={restartKey} debug={true} >
             <group>
-                {ground.map((el)=><RigidBody key={el.id} type={"fixed"} colliders={"cuboid"}>
-                    <primitive  object={el} />
-                </RigidBody>)}
+                <Ground />
                 {catapult.map((el)=><Catapult key={el.id} params={el.children} position={el.position} shells={shells} />)}
-               <Levels />
+               <Levels nodes={nodes} materials={materials} />
             </group>
         </Physics>
-        <CameraControls makeDefault target={[0,0,0]}   enablePan={false} maxPolarAngle={Math.PI / 2 + 0.01} minDistance={5} maxDistance={300} ref={cameraControlsRef} />
+        <Camera/>
     </group>
 }

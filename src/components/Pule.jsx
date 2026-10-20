@@ -28,12 +28,12 @@ export default function Pule({ missileRef }) {
     if (pule.length < puleStep) return null;
 
     const loaded = pule.filter((el, i) => i < puleStep);
-
     return loaded.map((el, i) => (
         <Cannonball
             key={`${el?.id ?? el}pule${i}`}
             type={materialOf(el)}
             radius={el?.radius ?? SHELL_RADIUS}
+            damage={el.damage}
             armed={i < armedCount}
             // ref нужен только последнему ядру, которое лежит в корзине,
             // иначе все ядра перезаписывают друг друга в missileRef

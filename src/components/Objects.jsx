@@ -1,8 +1,15 @@
 import useGameStore from "../store.js";
-import {BallCollider, CuboidCollider, InstancedRigidBodies, RigidBody} from "@react-three/rapier";
-import {Instance, Instances} from "@react-three/drei";
+import {BallCollider, CuboidCollider, InstancedRigidBodies, RigidBody, useRapier} from "@react-three/rapier";
+import {Box, Clone, Cylinder, Instance, Instances, Sphere} from "@react-three/drei";
 import {useEffect, useMemo, useRef, useState} from "react";
-import {GOBLIN_BASE_HEIGHT, GOBLIN_DARK, GOBLIN_SKIN, LEVEL_PROJECTILES, routable} from "../action.js";
+import {routable} from "../action.js";
+import {useSpring,a} from "@react-spring/three";
+import * as THREE from "three";
+import {useFrame} from "@react-three/fiber";
+import {Vector3} from "three";
+
+
+
 
 export function InstancesObjects({arr, geometry, materials, children = null, ref = null, name = "instance"}) {
 
@@ -35,96 +42,149 @@ export function InstancesObjects({arr, geometry, materials, children = null, ref
 export function Sensor({position=[0,0,0]}){
      return <RigidBody type={"fixed"} colliders={"cuboid"} position={position} >
         <CuboidCollider onIntersectionEnter={(e)=>{
-            if(e.other.rigidBody.userData.name === "brick"){
-                useGameStore.getState().setFallenBrick()
-            }
-            if(e.other.colliderObject.name === "pule"){
-                useGameStore.getState().puleCountStep()
-            }
-        }} name={"sensor"} sensor={true} args={[100,1,100]} />
 
-        <CuboidCollider onIntersectionEnter={(e)=>{
-            if(e.other.rigidBody.userData.name === "goblin" && !e.other.rigidBody.userData.active){
-                    useGameStore.getState().setEnemies()
-                    e.other.rigidBody.userData.active = true
-            }
-        }} name={"sensor-goblin"} sensor={true} args={[200,15,200]} />
+        }} name={"sensor"} sensor={true} args={[180,2,180]} />
     </RigidBody>
 }
 
+export function Goblin({config,nodes, position = [0, 0, 0], height }) {
+    const hpRef = useRef(null)
+    const rbRef = useRef(null)
+    const groupRef = useRef(null)
+    const {world} = useRapier()
+    const[remove,setRemove] = useState(false)
+    const positionRemove = new Vector3(100,1,0)
+    useFrame(()=>{
+        if(hpRef.current.scale.x <= 0 && groupRef.current.visible){
+            groupRef.current.visible = false
+            if(rbRef.current){
+                rbRef.current.setTranslation(positionRemove)
+                useGameStore.getState().setEnemies()
+            }
 
-export function Part({ position, size, color, s, solid = false }) {
-    const p = position.map((v) => v * s)
-    const sz = size.map((v) => v * s)
+        }
+    })
+    
+    
     return (
-        <>
-            <mesh position={p} castShadow>
-                <boxGeometry args={sz} />
-                <meshStandardMaterial color={color} roughness={0.8} />
-            </mesh>
-            {solid && (
-                <CuboidCollider position={p} args={[sz[0] / 2, sz[1] / 2, sz[2] / 2]} />
-            )}
-        </>
+        <group ref={groupRef} position={position}>
+            <RigidBody
+                ref={rbRef}
+                position={[0,0,0]}
+                colliders={false}
+                type={"dynamic"}
+                ccd={true}
+                rotation={[0,routable(180),0]}
+                enabledRotations={[false,false,false]}
+                userData={{name:"goblin",active:false}}
+            >
+                <Clone object={nodes.goblin} />
+                <BallCollider onIntersectionEnter={(e)=>{
+                    if(e.other.rigidBody.userData?.name === "pule") {
+                        if(hpRef.current.scale.x > 0) {
+                            let hp =  e.other.rigidBody.userData?.damage * (100 - (config.hp + config.armor)) / 100
+                            hp < 0?hp = 0:hp
+                            hpRef.current.scale.x = hpRef.current.scale.x - hp
+                        }
+                    }
+
+                }} sensor={true} position={[0,height / 2,0]} args={[height / 1.5]} />
+                <BallCollider  ccd={true} position={[0,height / 2,0]} args={[height / 2]} />
+                <group>
+                    <Box ref={hpRef} position={[0,height + 1,0]} args={[4,0.5,0.2]}>
+                        <meshStandardMaterial color="red" />
+                    </Box>
+                </group>
+            </RigidBody>
+
+        </group>
+
     )
 }
 
-export function Goblin({ position = [0, 0, 0], height }) {
-    const s = height / GOBLIN_BASE_HEIGHT
-    return (
-        <RigidBody
-            position={position}
-            colliders={false}
-            type={"dynamic"}
-            ccd={true}
-            rotation={[0,routable(180),0]}
-            enabledRotations={[false,true,false]}
-            userData={{name:"goblin",active:false}}
-        >
-            {/* ноги */}
-            <Part s={s} solid position={[-0.2, 0.2, 0]} size={[0.25, 0.4, 0.25]} color={GOBLIN_DARK} />
-            <Part s={s} solid position={[0.2, 0.2, 0]} size={[0.25, 0.4, 0.25]} color={GOBLIN_DARK} />
 
-            {/* туловище и пояс */}
-            <Part s={s} solid position={[0, 0.65, 0]} size={[0.7, 0.5, 0.4]} color={GOBLIN_SKIN} />
-            <Part s={s} position={[0, 0.5, 0]} size={[0.74, 0.14, 0.44]} color="#6b4a2b" />
+export function Barrel({position=[0,0,0]}){
+const {world} = useRapier()
+    const expRef = useRef(null)
+    const expRbRef = useRef(null)
+    const groupRef = useRef(null)
+    const expGroupRef = useRef(null)
+    const worldPosition = useRef(new THREE.Vector3())
+    const positionRemove = new Vector3(50,1,0)
+    const [expAnim,expApi] = useSpring(()=>({
+         from: {scale: [0, 0, 0]},
+         config:{duration:100},
+        onRest:()=>{
+            expRef.current.visible = false
+            groupRef.current.visible = false
+            if(expRbRef.current){
+                expRbRef.current.setTranslation(positionRemove)
+            }
 
-            {/* руки */}
-            <Part s={s} solid position={[-0.46, 0.65, 0]} size={[0.18, 0.45, 0.18]} color={GOBLIN_SKIN} />
-            <Part s={s} solid position={[0.46, 0.65, 0]} size={[0.18, 0.45, 0.18]} color={GOBLIN_SKIN} />
 
-            {/* дубинка в правой руке */}
-            <Part s={s} position={[0.5, 1.0, 0.1]} size={[0.14, 0.5, 0.14]} color="#7a5230" />
-            <Part s={s} position={[0.5, 1.3, 0.1]} size={[0.22, 0.2, 0.22]} color="#7a5230" />
+        }
+    }),[])
 
-            {/* голова */}
-            <Part s={s} solid position={[0, 1.15, 0]} size={[0.6, 0.5, 0.5]} color={GOBLIN_SKIN} />
+    return<group ref={groupRef} position={position} >
+        <RigidBody ref={expRbRef}  restitution={0.1} userData={{active:true}} density={0.6} enabledRotations={[false,false,false]}  type={"dynamic"} colliders={"hull"}>
+            <Cylinder  args={[2,2,4]}>
+                <meshStandardMaterial color="red" />
+            </Cylinder>
+            <BallCollider restitution={0.1} onIntersectionEnter={(e)=>{
+                if(e.other.rigidBody.userData.name === "pule" && e.target.rigidBody.userData.active){
+                    e.target.rigidBody.userData.active = false
 
-            {/* острые уши */}
-            <Part s={s} position={[-0.48, 1.25, 0]} size={[0.36, 0.12, 0.1]} color={GOBLIN_SKIN} />
-            <Part s={s} position={[0.48, 1.25, 0]} size={[0.36, 0.12, 0.1]} color={GOBLIN_SKIN} />
+                    const positionTarget = e.target.rigidBody.translation()
+                    const pos = groupRef.current.getWorldPosition(worldPosition.current)
+                    expGroupRef.current.position.x =  positionTarget.x - pos.x
+                    expGroupRef.current.position.y =  positionTarget.y - pos.y
+                    expGroupRef.current.position.z =  positionTarget.z - pos.z
+                    world.bodies.getAll()
+                        .filter((el) => el.userData?.name === "brick")
+                        .forEach((el) => {
+                            const positionOther = el.translation();
+                            // 1. Считаем вектор разницы (направление к цели)
+                            const dx = positionTarget.x - positionOther.x;
+                            const dy = positionTarget.y - positionOther.y;
+                            const dz = positionTarget.z - positionOther.z;
 
-            {/* нос */}
-            <Part s={s} position={[0, 1.1, 0.3]} size={[0.12, 0.14, 0.14]} color={GOBLIN_DARK} />
+                            // 2. Считаем реальное расстояние до цели (с маленькой добавкой 0.1, чтобы не было деления на ноль)
+                            const distance = Math.sqrt(dx * dx + dy * dy + dz * dz) + 0.1;
 
-            {/* глаза */}
-            <Part s={s} position={[-0.15, 1.24, 0.26]} size={[0.14, 0.14, 0.04]} color="#f5f5dc" />
-            <Part s={s} position={[0.15, 1.24, 0.26]} size={[0.14, 0.14, 0.04]} color="#f5f5dc" />
-            <Part s={s} position={[-0.15, 1.24, 0.29]} size={[0.06, 0.06, 0.03]} color="#111" />
-            <Part s={s} position={[0.15, 1.24, 0.29]} size={[0.06, 0.06, 0.03]} color="#111" />
+                            // 3. Инвертируем расстояние (1 / distance): чем меньше distance, тем больше множитель
+                            // Базовую силу (например, 100) делим на расстояние
+                            const strength = 5000 / distance;
 
-            {/* рот и зубы */}
-            <Part s={s} position={[0, 0.98, 0.26]} size={[0.3, 0.07, 0.04]} color="#2a1a14" />
-            <Part s={s} position={[-0.1, 1.02, 0.28]} size={[0.05, 0.06, 0.03]} color="#fffbe6" />
-            <Part s={s} position={[0.1, 1.02, 0.28]} size={[0.05, 0.06, 0.03]} color="#fffbe6" />
-            <BallCollider ccd={true} position={[0,height / 2,0]} args={[height / 2]} />
+                            // 4. Нормализуем направление (dx / distance) и умножаем на инвертированную силу
+                            const forceX = -(dx / distance) * strength;
+                            const forceY = -(dy / distance) * strength;
+                            const forceZ = -(dz / distance) * strength;
+
+                            el.applyImpulse({ x: forceX, y: forceY, z: forceZ }, true);
+                            el.setEnabledRotations(true, true, true, true);
+                        });
+                    expApi.start({
+                        to:{scale:[15,15,15]}
+                    })
+
+                }
+
+            }} args={[5]} sensor={true}/>
         </RigidBody>
-    )
+        <group position={[0,0,0]} ref={expGroupRef}>
+            <a.group  scale={expAnim.scale}>
+                <Sphere  ref={expRef} args={[0.5]}>
+                    <meshStandardMaterial transparent={true} opacity={0.8} color="orange" />
+                </Sphere>
+            </a.group>
+        </group>
+
+    </group>
+
 }
 
+export function Tower({items,nodes,position = [0,5,200], materials}){
 
-export function Tower({items}){
-    const [start,setStart] =useState(false)
     const rbRef = useRef(null)
     const stone_block = useMemo(()=>{
         return items.map((el,i)=>{
@@ -141,20 +201,35 @@ export function Tower({items}){
         return items.filter((el)=>el.enemies).map((el,i)=>{
             return {
                 key:i + "enemies",
+                config:el.enemiesConfig,
                 position: [el.position[0],el.position[1] + 0.5,el.position[2]],
                 scale:el.scale,
-                type: "fixed"
+                type: "dynamic"
+            }
+        })
+    },[items])
+
+    const barrel = useMemo(()=>{
+        return items.filter((el)=>el.barrel).map((el,i)=>{
+            return {
+                key:i + "barrel",
+                position: [el.position[0],el.position[1] + 0.5,el.position[2]],
+                scale:el.scale,
+                height:el.scale[1],
+                radius:el.scale[0] / 2,
+                type: "dynamic"
             }
         })
     },[items])
 
 
+
+
     useEffect(() => {
+        useGameStore.getState().setBricks(stone_block.length)
+    }, [stone_block]);
 
-    }, []);
-console.log(enemies)
-
-    return <group position={[0,5,200]}>
+    return <group position={position}>
         <InstancedRigidBodies
             ref={rbRef}
             instances={stone_block}
@@ -166,19 +241,24 @@ console.log(enemies)
             enabledRotations={[false,false,false]}
             userData={{name:"brick",active:true}}
             onIntersectionEnter={(e)=>{
+                if(e.other.colliderObject.name === "sensor"){
+                    useGameStore.getState().setFallenBrick()
+                }
                 if(e.other.rigidBody.userData.name === "pule"){
                     rbRef.current.forEach((el)=>{
                          el.setEnabledRotations(true, true, true, true);
                     })
                 }
             }}
-            colliderNodes={[ <CuboidCollider  density={0.2} sensor={true}  args={[1,1, 1]} />]}
+            colliderNodes={[ <CuboidCollider name={"brick"}  density={0.2} sensor={true}  args={[1,1, 1]} />]}
         >
             <instancedMesh   frustumCulled={false} args={[undefined, undefined, stone_block.length]} count={stone_block.length} name={"brick"} >
                 <boxGeometry args={[2, 2, 2]} />
                 <meshStandardMaterial color="#fbe1b9" />
             </instancedMesh>
         </InstancedRigidBodies>
-        {enemies.map((el)=><Goblin  height={5} position={el.position}/>)}
+        {enemies.map((el)=><Goblin config={el.config} nodes={nodes} key={el.key} height={5} position={el.position}/>)}
+        {barrel.map((el)=><Barrel key={el.key} height={5} position={el.position}/>)}
+
     </group>
 }

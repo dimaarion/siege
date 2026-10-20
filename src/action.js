@@ -13,45 +13,54 @@ export const AMMO = [
     {
         id: 1, key: "hay", label: "Солома", density: 0.2,
         restitution: 0.1, friction: 1.0, breakForce: 80, tier: 1,
+        damage:0.3,
         visual: { color: "#d9b24c", roughness: 1, metalness: 0, bands: { count: 3, color: "#7a5a1e" } },
     },
     {
         id: 2, key: "wood", label: "Дуб", density: 0.7,
+        damage:0.8,
         restitution: 0.3, friction: 0.7, breakForce: null, tier: 1,
         visual: { color: "#8b5a2b", roughness: 0.85, metalness: 0, bands: { count: 2, color: "#3a3d42" } },
     },
     {
         id: 3, key: "ice", label: "Лёд", density: 0.92,
+        damage:0.9,
         restitution: 0.15, friction: 0.05, breakForce: 400, tier: 1,
         visual: { color: "#bfe6f5", roughness: 0.1, metalness: 0, flat: true, opacity: 0.8 },
     },
     {
         id: 4, key: "ground", label: "Земля", density: 1.5,
+        damage:1,
         restitution: 0.05, friction: 0.9, breakForce: 300, tier: 1,
         visual: { color: "#6b4a2f", roughness: 1, metalness: 0, flat: true },
     },
     {
         id: 5, key: "brick", label: "Кирпич", density: 1.8,
+        damage:1.5,
         restitution: 0.2, friction: 0.8, breakForce: 900, tier: 2,
         visual: { color: "#b5532f", roughness: 0.9, metalness: 0 },
     },
     {
         id: 6, key: "concrete", label: "Бетон", density: 2.4,
+        damage:2,
         restitution: 0.2, friction: 0.8, breakForce: null, tier: 2,
         visual: { color: "#9a9a96", roughness: 0.95, metalness: 0 },
     },
     {
         id: 7, key: "stone", label: "Гранит", density: 2.7,
+        damage:2.5,
         restitution: 0.25, friction: 0.7, breakForce: null, tier: 2,
         visual: { color: "#7c7f83", roughness: 0.8, metalness: 0.05, flat: true },
     },
     {
         id: 8, key: "cast_iron", label: "Чугун", density: 7.2,
+        damage:3,
         restitution: 0.2, friction: 0.5, breakForce: null, tier: 3,
         visual: { color: "#2b2d31", roughness: 0.45, metalness: 0.9 },
     },
     {
         id: 9, key: "lead", label: "Свинец", density: 11.3,
+        damage:4,
         restitution: 0.05, friction: 0.6, breakForce: null, tier: 3,
         visual: { color: "#6f7c8c", roughness: 0.35, metalness: 0.8 },
     },
@@ -65,6 +74,15 @@ export const GOBLIN_DARK = '#4f8a2b'
 
 // Высота базовой модели гоблина (до макушки), в её собственных единицах
 export const GOBLIN_BASE_HEIGHT = 1.4
+
+export const HED = [
+    [0,2,-50],
+    [10,2,-50],
+    [-10,2,-50],
+    [0,2,50],
+    [10,2,50],
+    [-10,2,50]
+]
 
 /** Найти материал по id (число) или ключу ("stone"). */
 export function getAmmo(type) {
@@ -85,7 +103,7 @@ export function impactEnergy(mass, speed) {
 
 // Прежний формат {id, density, name}. Строится из AMMO,
 // чтобы плотности не дублировались и не расходились.
-export const PROJECTILES = AMMO.map(({ id, density, key }) => ({ id, density, name: key }));
+export const PROJECTILES = AMMO.map(({ id, density, key,damage }) => ({ id, density, name: key,damage:damage }));
 
 /**
  * Уровни и выдаваемые снаряды.
@@ -103,6 +121,11 @@ export const PROJECTILES = AMMO.map(({ id, density, key }) => ({ id, density, na
  *  2. снарядов не меньше, чем minShots + 1: остаётся запас и можно получить звезду за снаряд;
  *  3. тяжёлых ядер (плотность от HEAVY_DENSITY) не меньше, чем гоблинов в шлемах.
  */
+
+const ENEMISES = {
+    goblin:{type:"goblin",floor:1,hp:20,armor:0}
+}
+
 export const LEVEL_PROJECTILES = [
     // Мир 1. Деревня
     { lev: 1,  title: "Первая башня",
@@ -110,11 +133,12 @@ export const LEVEL_PROJECTILES = [
         armored: 0,
         catapultTier: 1,
         minShots: 1,
-        pule: [1,1,6,6,7,7,8,8,9],
+        pule: [1,2,6,7,8],
         tower:[
             {
                 id: 1,
-                object:generateTower({floors:8,width:5,enemies:[1,5]})
+                object:generateTower({floors:2,width:5,enemies:[{...ENEMISES.goblin,floor: 1}],barrel:[]}),
+                position:[0,5,200]
             }
         ]
     },
@@ -291,7 +315,7 @@ export function predictTrajectory({
 }
 
 
-export function generateTower({ floors = 4, width = 3,enemies = [1,2,3] } = {}) {
+export function generateTower({ floors = 4, width = 3,enemies = [{type:"goblin",floor:1}],barrel = [2] } = {}) {
     const blockSize = 1;         // Толщина / ширина колонн
     const floorHeight = 4;       // Высота колонн (этажа)
     const slabThickness = 0.5;   // Толщина плиты-крышки
@@ -322,9 +346,12 @@ export function generateTower({ floors = 4, width = 3,enemies = [1,2,3] } = {}) 
 
         towerElements.forEach((el, i) => {
             const isSlab = i === 4;
+            console.log(barrel.find((em)=>em === j))
             res.push({
                 type: isSlab ? "stone_slab" : "stone_block",
-                enemies:enemies.find((em)=>em === j) && i === 4,
+                enemies:enemies.find((em)=>em.floor === j) && i === 4,
+                enemiesConfig: enemies.find((em)=>em.floor === j),
+                barrel:barrel.find((em)=>em === j) && i === 4,
                 position: el,
                 scale: isSlab
                     ? [span + blockSize * 2, slabThickness, span + blockSize * 2] // Размер плиты
@@ -333,6 +360,6 @@ export function generateTower({ floors = 4, width = 3,enemies = [1,2,3] } = {}) 
         });
     }
 
-    console.log(res);
+
     return res;
 }

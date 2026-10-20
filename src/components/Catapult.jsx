@@ -6,8 +6,6 @@ import useGameStore from "../store.js";
 import * as THREE from "three";
 import {Vector3} from "three";
 import Pule from "./Pule.jsx";
-import AimLine from "./AimLine.jsx";
-import {ProjectileTrajectory} from "./ProjectileTrajectory.jsx";
 import {TrajectoryPreview} from "./TrajectoryPreview.jsx";
 
 
@@ -289,7 +287,7 @@ export default function Catapult({params,position = [0,0,0],shells}){
         <RigidBody enabledRotations={[false,false,false]}  ref={rotatePlatformRef} type={"dynamic"} colliders={"hull"}>
             <group position={[0,0,0]} >
                 <group>
-                    <Cylinder args={[3,3,2]}>
+                    <Cylinder args={[3.5,3.5,2]}>
                         <meshStandardMaterial color="#fbe1b9" />
                     </Cylinder>
                 </group>
