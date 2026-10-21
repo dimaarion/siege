@@ -223,6 +223,18 @@ export function Tower({items,nodes,position = [0,5,200], materials}){
     },[items])
 
 
+useFrame(()=>{
+    if(rbRef.current){
+        rbRef.current.forEach((el)=>{
+            const pos = el.translation()
+            if(pos.y < 2){
+               el.active = true
+            }
+
+        })
+    }
+    useGameStore.getState().setFallenBrick(rbRef.current.filter((el)=>el.active).length)
+})
 
 
     useEffect(() => {
@@ -240,17 +252,17 @@ export function Tower({items,nodes,position = [0,5,200], materials}){
             name={"brick-rig"}
             enabledRotations={[false,false,false]}
             userData={{name:"brick",active:true}}
-            onIntersectionEnter={(e)=>{
+
+            colliderNodes={[ <CuboidCollider  onIntersectionEnter={(e)=>{
                 if(e.other.colliderObject.name === "sensor"){
                     useGameStore.getState().setFallenBrick()
                 }
                 if(e.other.rigidBody.userData.name === "pule"){
                     rbRef.current.forEach((el)=>{
-                         el.setEnabledRotations(true, true, true, true);
+                        el.setEnabledRotations(true, true, true, true);
                     })
                 }
-            }}
-            colliderNodes={[ <CuboidCollider name={"brick"}  density={0.2} sensor={true}  args={[1,1, 1]} />]}
+            }} name={"brick"}  density={0.2} sensor={true}  args={[1,1, 1]} />]}
         >
             <instancedMesh   frustumCulled={false} args={[undefined, undefined, stone_block.length]} count={stone_block.length} name={"brick"} >
                 <boxGeometry args={[2, 2, 2]} />
@@ -259,6 +271,53 @@ export function Tower({items,nodes,position = [0,5,200], materials}){
         </InstancedRigidBodies>
         {enemies.map((el)=><Goblin config={el.config} nodes={nodes} key={el.key} height={5} position={el.position}/>)}
         {barrel.map((el)=><Barrel key={el.key} height={5} position={el.position}/>)}
+
+    </group>
+}
+
+export function Wall({items,nodes,position = [0,5,100], materials}) {
+    const rbRef = useRef(null)
+
+    useEffect(() => {
+        console.log(items.blocks)
+    }, []);
+
+    const walls = useMemo(()=>{
+        return items.blocks.map((el,i)=>{
+            return {
+                key:el.id,
+                position: el.pos,
+                scale:el.half,
+                type: "dynamic"
+            }
+        })
+    },[items])
+    return <group position={position}>
+        <InstancedRigidBodies
+            ref={rbRef}
+            instances={walls}
+            colliders="cuboid"
+            density={0.2}
+            friction={0.8}
+            restitution={0.05}
+            name={"wall-rig"}
+            enabledRotations={[false,false,false]}
+            userData={{name:"wall",active:true}}
+
+            colliderNodes={[ <CuboidCollider  onIntersectionEnter={(e)=>{
+
+                if(e.other.rigidBody.userData.name === "pule"){
+                    rbRef.current.forEach((el)=>{
+                        el.setEnabledRotations(true, true, true, true);
+                    })
+                }
+            }} name={"brick"}  density={0.2} sensor={true}  args={[1,1, 1]} />]}
+        >
+            <instancedMesh   frustumCulled={false} args={[undefined, undefined, walls.length]} count={walls.length} name={"walls"} >
+                <boxGeometry args={[2, 2, 2]} />
+                <meshStandardMaterial color="#fbe1b9" />
+            </instancedMesh>
+        </InstancedRigidBodies>
 
     </group>
 }

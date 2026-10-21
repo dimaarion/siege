@@ -24,11 +24,11 @@ export default function TopPanel(){
 
     useEffect(() => {
         LEVEL_PROJECTILES.filter((el)=>el.lev === level).forEach((el)=>{
-            if(el.enemies === enemies && (fallenBrick / 2) * 100 / bricks >= 50){
+            if(el.enemies === enemies && fallenBrick * 100 / bricks >= 70){
                 useGameStore.getState().setPage("victory")
             }else if(!recharge && (pule.length - puleStep) <= 0){
                 const time = setTimeout(()=>{
-                      useGameStore.getState().setPage("game-over")
+                     useGameStore.getState().setPage("game-over")
                 },5000)
                 return ()=>clearTimeout(time)
             }
@@ -36,11 +36,6 @@ export default function TopPanel(){
         })
     }, [bricks, enemies, fallenBrick, level, pule.length, puleStep, recharge]);
 
-
-    useEffect(() => {
-        console.log(fallenBrick , bricks )
-        console.log((fallenBrick / 2) * 100 / bricks )
-    }, [bricks, fallenBrick]);
     
     return <div className={"fixed flex justify-between z-20 top-0 left-0 right-0 h-20 w-full bg-gray-950"}>
         <div className={"text-gray-50 text-2xl flex self-center ml-4"}>Очки {scope}</div>

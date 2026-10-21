@@ -122,7 +122,7 @@ export const PROJECTILES = AMMO.map(({ id, density, key,damage }) => ({ id, dens
  *  3. тяжёлых ядер (плотность от HEAVY_DENSITY) не меньше, чем гоблинов в шлемах.
  */
 
-const ENEMISES = {
+const ENEMIES = {
     goblin:{type:"goblin",floor:1,hp:20,armor:0}
 }
 
@@ -137,13 +137,44 @@ export const LEVEL_PROJECTILES = [
         tower:[
             {
                 id: 1,
-                object:generateTower({floors:2,width:5,enemies:[{...ENEMISES.goblin,floor: 1}],barrel:[]}),
+                object:generateTower({floors:2,width:5,enemies:[{...ENEMIES.goblin,floor: 1}],barrel:[]}),
                 position:[0,5,200]
             }
-        ]
+        ],
+        wall:[],
+        goblin:[]
     },
-    { lev: 2,  title: "Две башни",         enemies: 2, armored: 0, catapultTier: 1, minShots: 2, pule: [1,1,6,6,7,7,8,8,9] },
-    { lev: 3,  title: "Каменная стена",    enemies: 1, armored: 0, catapultTier: 1, minShots: 2, pule: [4,4,2,3] },
+    { lev: 2,  title: "Две башни",enemies: 2, armored: 0, catapultTier: 1, minShots: 2, pule: [1,1,6,6,7,7,8,8,9],
+        tower:[
+            {
+                id: 1,
+                object:generateTower({floors:2,width:5,enemies:[{...ENEMIES.goblin,floor: 1}],barrel:[]}),
+                position:[-50,5,200]
+            },
+            {
+                id: 2,
+                object:generateTower({floors:2,width:5,enemies:[{...ENEMIES.goblin,floor: 1}],barrel:[]}),
+                position:[50,5,200]
+            }
+        ],
+        wall: [],
+        goblin:[]
+    },
+    { lev: 3,  title: "Каменная стена",    enemies: 1, armored: 0, catapultTier: 1, minShots: 2, pule: [4,4,2,3,6,7,8],
+        tower:[],
+        wall: [{
+            id:1,
+            object:generateWall({length:20,rows:10,brickLength:5,brickDepth:3,brickHeight:3}),
+            position:[0,1,150]
+        }],
+        goblin:[{
+        id:1,
+        object:ENEMIES.goblin,
+        position:[0,1,200],
+        height:5
+
+    }]
+    },
     { lev: 4,  title: "Первая бочка",      enemies: 2, armored: 0, catapultTier: 1, minShots: 1, pule: [2,2,3,4] },
     { lev: 5,  title: "Диапазон и ежи",    enemies: 3, armored: 0, catapultTier: 1, minShots: 3, pule: [2,2,3,4,4] },
     // Мир 2. Замок
@@ -362,4 +393,71 @@ export function generateTower({ floors = 4, width = 3,enemies = [{type:"goblin",
 
 
     return res;
+}
+
+export function generateWall({
+                                 length = 8,
+                                 rows = 6,
+                                 brickLength = 2,
+                                 brickHeight = 2,
+                                 brickDepth = 2,
+                                 axis = 'x',
+                                 gap = 0.05,
+                                 position = [0, 0, 0],
+                                 mat = 'stone',
+                                 idPrefix = 'wl',
+                                 seed = 1,
+                             } = {}) {
+    if (!Number.isInteger(rows) || rows < 1) {
+        throw new RangeError('rows должно быть целым числом от 1')
+    }
+    if (axis !== 'x' && axis !== 'z') {
+        throw new RangeError("axis должна быть 'x' или 'z'")
+    }
+    if (!(length > 0) || !(brickLength > 0)) {
+        throw new RangeError('length и brickLength должны быть больше нуля')
+    }
+
+    const [px, py, pz] = position
+    const n = Math.max(1, Math.round(length / brickLength)) // целых кирпичей в чётном ряду
+    const total = n * brickLength // фактическая длина стены
+    const start = -total / 2 // начало стены вдоль оси, отсчёт от центра
+    const blocks = []
+
+    // детерминированная «случайность» для оттенка кирпича
+    const shadeOf = (i) => 0.85 + (Math.abs(Math.sin((i + 1) * 12.9898 + seed * 78.233) * 43758.5453) % 1) * 0.3
+
+    // along — центр кирпича вдоль стены (от центра стены), len — его длина
+    const add = (row, along, len) => {
+        const y = py + row * brickHeight + brickHeight / 2
+        const pos = axis === 'x' ? [px + along, y, pz] : [px, y, pz + along]
+        const nominal = axis === 'x' ? [len, brickHeight, brickDepth] : [brickDepth, brickHeight, len]
+        const sz = nominal.map((v) => v - 2 * gap)
+        const i = blocks.length
+        blocks.push({
+            id: `${idPrefix}${i}`,
+            kind: 'brick',
+            row,
+            pos,
+            size: sz,
+            half: sz.map((v) => v / 2),
+            mat,
+            shade: shadeOf(i),
+        })
+    }
+
+    for (let r = 0; r < rows; r++) {
+        if (r % 2 === 0 || n === 1) {
+            // чётный ряд: n целых кирпичей встык
+            for (let i = 0; i < n; i++) add(r, start + (i + 0.5) * brickLength, brickLength)
+        } else {
+            // нечётный ряд: половинка, n - 1 целых, половинка. Общая длина та же, торцы ровные
+            add(r, start + brickLength / 4, brickLength / 2)
+            for (let i = 0; i < n - 1; i++) add(r, start + brickLength / 2 + (i + 0.5) * brickLength, brickLength)
+            add(r, start + total - brickLength / 4, brickLength / 2)
+        }
+    }
+
+    const height = rows * brickHeight
+    return { blocks, length: total, height, top: py + height, bricksPerRow: n }
 }

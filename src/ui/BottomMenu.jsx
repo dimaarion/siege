@@ -95,7 +95,7 @@ export default function BottomMenu(){
                 <div className={"w-1/2  bg-gray-900"}>
                     <input onChange={(e)=>{
                         useGameStore.getState().setSlant(e.target.value)
-                    }} value={slant} className={"w-full  appearance-none bg-red-700"} type={"range"} min={0} max={1} step={0.01}/>
+                    }} value={slant} className={"w-full  appearance-none bg-red-700"} type={"range"} min={0} max={2} step={0.01}/>
                     <div className={"p-2 text-xl   text-gray-50 text-center"}>Угол наклона</div>
                 </div>
             </div>

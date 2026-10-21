@@ -5,11 +5,11 @@ import {LEVEL_PROJECTILES, PROJECTILES, pickNext} from "./action.js";
 
 const useGameStore = create((set) => ({
     towerRotation: 0,
-    towerRotationPlus: () => set((state) => ({ towerRotation: 10 })),
-    towerRotationMinus: () => set((state) => ({ towerRotation: -10 })),
+    towerRotationPlus: () => set(() => ({ towerRotation: 10 })),
+    towerRotationMinus: () => set(() => ({ towerRotation: -10 })),
     towerRotationStop: () => set(() => ({ towerRotation: 0 })),
     shot:0,
-    shotStart:()=>set(()=>({shot: 2 * 10})),
+    shotStart:()=>set(()=>({shot: 20})),
     shotMin:()=>set(()=>({shot: -1})),
     shotStop:()=>set(()=>({shot: 0})),
     recharge:false,
@@ -19,7 +19,7 @@ const useGameStore = create((set) => ({
     movementForward:()=>set(()=>({movement:50})),
     movementBackward:()=>set(()=>({movement:-50})),
     movementStop:()=>set(()=>({movement:0})),
-    force:2,
+    force:15,
     setForce:(el)=>set(()=>({force:el})),
     pule:PROJECTILES,
     // Набор снарядов уровня берётся из PROJECTILES, а не из текущего state.pule:
@@ -57,7 +57,7 @@ const useGameStore = create((set) => ({
     pause:false,
     pauseStart:()=>set(()=>({pause:true})),
     pauseStop:()=>set(()=>({pause:false})),
-    level:1,
+    level:3,
     setLevel:(el)=>set(()=>({level:el})),
     setLevelStep:()=>set((state)=>({level:state.level + 1})),
     enemies:0,
@@ -69,7 +69,7 @@ const useGameStore = create((set) => ({
     setBricks:(el)=>set((state)=>({bricks:state.bricks + el})),
     bricksRestart:()=>set(()=>({bricks:0})),
     fallenBrick:0,
-    setFallenBrick:()=>set((state)=>({fallenBrick:state.fallenBrick + 1})),
+    setFallenBrick:(el)=>set(()=>({fallenBrick:el})),
     setFallenBrickRestart:()=>set(()=>({fallenBrick:0})),
 }))
 
