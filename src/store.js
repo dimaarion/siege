@@ -57,7 +57,7 @@ const useGameStore = create((set) => ({
     pause:false,
     pauseStart:()=>set(()=>({pause:true})),
     pauseStop:()=>set(()=>({pause:false})),
-    level:3,
+    level:4,
     setLevel:(el)=>set(()=>({level:el})),
     setLevelStep:()=>set((state)=>({level:state.level + 1})),
     enemies:0,

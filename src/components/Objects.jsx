@@ -7,6 +7,7 @@ import {useSpring,a} from "@react-spring/three";
 import * as THREE from "three";
 import {useFrame} from "@react-three/fiber";
 import {Vector3} from "three";
+import EnemyTarget from "../classes/EnemyTarget.js";
 
 
 
@@ -39,6 +40,7 @@ export function InstancesObjects({arr, geometry, materials, children = null, ref
         </Instances>
     </group>
 }
+
 export function Sensor({position=[0,0,0]}){
      return <RigidBody type={"fixed"} colliders={"cuboid"} position={position} >
         <CuboidCollider onIntersectionEnter={(e)=>{
@@ -64,8 +66,8 @@ export function Goblin({config,nodes, position = [0, 0, 0], height }) {
 
         }
     })
-    
-    
+
+    const goblin = new EnemyTarget(config.hp, config.armor);
     return (
         <group ref={groupRef} position={position}>
             <RigidBody
@@ -81,12 +83,10 @@ export function Goblin({config,nodes, position = [0, 0, 0], height }) {
                 <Clone object={nodes.goblin} />
                 <BallCollider onIntersectionEnter={(e)=>{
                     if(e.other.rigidBody.userData?.name === "pule") {
-                        console.log("test")
-                        if(hpRef.current.scale.x > 0) {
-                            let hp =  e.other.rigidBody.userData?.damage * (100 - (config.hp + config.armor)) / 100
-                            hp < 0?hp = 0:hp
-                            hpRef.current.scale.x = hpRef.current.scale.x - hp
-                        }
+                        let newWidth = goblin.takeDamage(e.other.rigidBody.userData?.damage)
+                        console.log(newWidth)
+                            hpRef.current.scale.x = newWidth
+
                     }
 
                 }} sensor={true} position={[0,height / 2,0]} args={[height / 1.5]} />
@@ -279,9 +279,7 @@ useFrame(()=>{
 export function Wall({items,nodes,position = [0,5,100], materials}) {
     const rbRef = useRef(null)
 
-    useEffect(() => {
-        console.log(items.blocks)
-    }, []);
+
 
     const walls = useMemo(()=>{
         return items.blocks.map((el,i)=>{

@@ -13,54 +13,54 @@ export const AMMO = [
     {
         id: 1, key: "hay", label: "Солома", density: 0.2,
         restitution: 0.1, friction: 1.0, breakForce: 80, tier: 1,
-        damage:0.3,
+        damage:5,
         visual: { color: "#d9b24c", roughness: 1, metalness: 0, bands: { count: 3, color: "#7a5a1e" } },
     },
     {
         id: 2, key: "wood", label: "Дуб", density: 0.7,
-        damage:0.8,
+        damage:9,
         restitution: 0.3, friction: 0.7, breakForce: null, tier: 1,
         visual: { color: "#8b5a2b", roughness: 0.85, metalness: 0, bands: { count: 2, color: "#3a3d42" } },
     },
     {
         id: 3, key: "ice", label: "Лёд", density: 0.92,
-        damage:0.9,
+        damage:12,
         restitution: 0.15, friction: 0.05, breakForce: 400, tier: 1,
         visual: { color: "#bfe6f5", roughness: 0.1, metalness: 0, flat: true, opacity: 0.8 },
     },
     {
         id: 4, key: "ground", label: "Земля", density: 1.5,
-        damage:1,
+        damage:14,
         restitution: 0.05, friction: 0.9, breakForce: 300, tier: 1,
         visual: { color: "#6b4a2f", roughness: 1, metalness: 0, flat: true },
     },
     {
         id: 5, key: "brick", label: "Кирпич", density: 1.8,
-        damage:1.5,
+        damage:16,
         restitution: 0.2, friction: 0.8, breakForce: 900, tier: 2,
         visual: { color: "#b5532f", roughness: 0.9, metalness: 0 },
     },
     {
         id: 6, key: "concrete", label: "Бетон", density: 2.4,
-        damage:2,
+        damage:18,
         restitution: 0.2, friction: 0.8, breakForce: null, tier: 2,
         visual: { color: "#9a9a96", roughness: 0.95, metalness: 0 },
     },
     {
         id: 7, key: "stone", label: "Гранит", density: 2.7,
-        damage:2.5,
+        damage:20,
         restitution: 0.25, friction: 0.7, breakForce: null, tier: 2,
         visual: { color: "#7c7f83", roughness: 0.8, metalness: 0.05, flat: true },
     },
     {
         id: 8, key: "cast_iron", label: "Чугун", density: 7.2,
-        damage:3,
+        damage:22,
         restitution: 0.2, friction: 0.5, breakForce: null, tier: 3,
         visual: { color: "#2b2d31", roughness: 0.45, metalness: 0.9 },
     },
     {
         id: 9, key: "lead", label: "Свинец", density: 11.3,
-        damage:4,
+        damage:24,
         restitution: 0.05, friction: 0.6, breakForce: null, tier: 3,
         visual: { color: "#6f7c8c", roughness: 0.35, metalness: 0.8 },
     },
@@ -142,7 +142,8 @@ export const LEVEL_PROJECTILES = [
             }
         ],
         wall:[],
-        goblin:[]
+        goblin:[],
+        barrel:[]
     },
     { lev: 2,  title: "Две башни",enemies: 2, armored: 0, catapultTier: 1, minShots: 2, pule: [1,1,6,6,7,7,8,8,9],
         tower:[
@@ -158,7 +159,8 @@ export const LEVEL_PROJECTILES = [
             }
         ],
         wall: [],
-        goblin:[]
+        goblin:[],
+        barrel:[]
     },
     { lev: 3,  title: "Каменная стена",    enemies: 1, armored: 0, catapultTier: 1, minShots: 2, pule: [4,4,2,3,6,7,8],
         tower:[],
@@ -170,12 +172,26 @@ export const LEVEL_PROJECTILES = [
         goblin:[{
         id:1,
         object:ENEMIES.goblin,
-        position:[0,1,250],
+        position:[0,1,230],
         height:5
 
     }]
     },
-    { lev: 4,  title: "Первая бочка",      enemies: 2, armored: 0, catapultTier: 1, minShots: 1, pule: [2,2,3,4] },
+    { lev: 4,  title: "Первая бочка",      enemies: 2, armored: 0, catapultTier: 1, minShots: 1, pule: [2,2,3,4,5,6],
+        tower:[
+            {
+                id: 1,
+                object:generateTower({floors:3,width:5,enemies:[{...ENEMIES.goblin,floor: 2}],barrel:[1]}),
+                position:[0,5,200]
+            }
+        ],
+        wall: [],
+        goblin:[],
+        barrel:[{
+        id:1,
+        position:[0,5,200]
+        }]
+    },
     { lev: 5,  title: "Диапазон и ежи",    enemies: 3, armored: 0, catapultTier: 1, minShots: 3, pule: [2,2,3,4,4] },
     // Мир 2. Замок
     { lev: 6,  title: "Мост через ров",    enemies: 3, armored: 0, catapultTier: 2, minShots: 2, pule: [2,2,5,5] },

@@ -51,7 +51,7 @@ function App() {
             </div>:""}
             {page === "victory"?<Victory/>:""}
             {page === "game-over"?<GameOver/>:""}
-
+            <GameOver/>
         </Suspense>
     </>
   )
