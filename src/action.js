@@ -164,13 +164,13 @@ export const LEVEL_PROJECTILES = [
         tower:[],
         wall: [{
             id:1,
-            object:generateWall({length:20,rows:10,brickLength:5,brickDepth:3,brickHeight:3}),
-            position:[0,1,150]
+            object:generateWall({length:20,rows:5,brickLength:5,brickDepth:3,brickHeight:3}),
+            position:[0,1,200]
         }],
         goblin:[{
         id:1,
         object:ENEMIES.goblin,
-        position:[0,1,200],
+        position:[0,1,250],
         height:5
 
     }]

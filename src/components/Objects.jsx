@@ -81,6 +81,7 @@ export function Goblin({config,nodes, position = [0, 0, 0], height }) {
                 <Clone object={nodes.goblin} />
                 <BallCollider onIntersectionEnter={(e)=>{
                     if(e.other.rigidBody.userData?.name === "pule") {
+                        console.log("test")
                         if(hpRef.current.scale.x > 0) {
                             let hp =  e.other.rigidBody.userData?.damage * (100 - (config.hp + config.armor)) / 100
                             hp < 0?hp = 0:hp
