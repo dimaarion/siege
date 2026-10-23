@@ -14,9 +14,7 @@ export default function TopPanel(){
     const recharge = useGameStore((state)=>state.recharge)
     const page = useGameStore((state)=>state.page)
 
-    const destruction = useMemo(()=>{
-        return (fallenBrick / bricks * 100).toFixed(0) // процент разрушенных объектов, 0–100
-    },[bricks, fallenBrick])
+
 
     useEffect(() => {
         useGameStore.getState().puleLevelStart(level)
@@ -24,7 +22,7 @@ export default function TopPanel(){
 
     useEffect(() => {
         LEVEL_PROJECTILES.filter((el)=>el.lev === level).forEach((el)=>{
-            if(el.enemies === enemies && fallenBrick * 100 / bricks >= 70){
+            if(el.enemies === enemies && fallenBrick * 100 / bricks >= 50){
                 useGameStore.getState().setPage("victory")
             }else if(!recharge && (pule.length - puleStep) <= 0){
                 const time = setTimeout(()=>{

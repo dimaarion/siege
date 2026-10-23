@@ -83,9 +83,8 @@ export function Goblin({config,nodes, position = [0, 0, 0], height }) {
                 <Clone object={nodes.goblin} />
                 <BallCollider onIntersectionEnter={(e)=>{
                     if(e.other.rigidBody.userData?.name === "pule") {
-                        let newWidth = goblin.takeDamage(e.other.rigidBody.userData?.damage)
-                        console.log(newWidth)
-                            hpRef.current.scale.x = newWidth
+                        goblin.takeDamage(e.other.rigidBody.userData?.damage)
+                            hpRef.current.scale.x = goblin.takeDamage(e.other.rigidBody.userData?.damage)
 
                     }
 

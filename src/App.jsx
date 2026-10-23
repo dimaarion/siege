@@ -49,9 +49,9 @@ function App() {
             {page === "start"?<div className={"fixed z-50 top-0 left-0 right-0"}>
                 <StartPage/>
             </div>:""}
-            {page === "victory"?<Victory/>:""}
+            {page === "victory"?<GameOver/>:""}
             {page === "game-over"?<GameOver/>:""}
-            <GameOver/>
+
         </Suspense>
     </>
   )

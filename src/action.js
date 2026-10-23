@@ -177,7 +177,7 @@ export const LEVEL_PROJECTILES = [
 
     }]
     },
-    { lev: 4,  title: "Первая бочка",      enemies: 2, armored: 0, catapultTier: 1, minShots: 1, pule: [2,2,3,4,5,6],
+    { lev: 4,  title: "Первая бочка",      enemies: 1, armored: 0, catapultTier: 1, minShots: 1, pule: [2,2,3,4,5,6],
         tower:[
             {
                 id: 1,
