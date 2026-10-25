@@ -10,6 +10,7 @@ export default function GameOver(){
     const pule = useGameStore((state)=>state.pule)
     const enemies = useGameStore((state)=>state.enemies)
     const puleStep = useGameStore((state)=>state.puleStep)
+    const scope = useGameStore((state)=>state.scope)
     const shotsUsed = pule.length - puleStep
 
 
@@ -19,12 +20,14 @@ export default function GameOver(){
     const[levels,setLevels] = useState(false)
     const[restart,setRestart] = useState(false)
 
+    const destructionPrecent = 50
+
     const destruction = useMemo(()=>{
         return (fallenBrick * 100 / bricks).toFixed(0) // процент разрушенных объектов, 0–100
     },[bricks, fallenBrick])
 
     const victory = useMemo(()=>{
-        return enemies === enemiesTotal && destruction > 50
+        return enemies === enemiesTotal && destruction > destructionPrecent
     },[destruction, enemies, enemiesTotal])
     
     return <div className={"fixed m-auto left-0 right-0 top-0 bottom-0 bg-gray-800 z-50"}>
@@ -36,14 +39,17 @@ export default function GameOver(){
             {victory?<text x={80} y={220} fill={"white"} fontSize={33}>Крепость разрушена</text>:
                 <text x={80} y={80} fill={"white"} fontSize={33}>ОСАДА ПРОВАЛЕНА</text>}
         </g>
-        <g transform={'translate(820 310)'}>
-            {enemies === enemiesTotal?<image  x={0} y={0}   href={"./img/star.png"} />:<image  x={0} y={0}   href={"./img/star-over.png"} />}
-             <image  x={95} y={-10}   href={"./img/star-over.png"} />
-             <image  x={190} y={0}   href={"./img/star.png"} />
-        </g>
+            {victory?<g transform={'translate(820 310)'}>
+                {enemies === enemiesTotal ? <image x={0} y={0} href={"./img/star.png"}/> :
+                    <image x={0} y={0} href={"./img/star-over.png"}/>}
+                {shotsUsed !== 0 ? <image x={95} y={-10} href={"./img/star.png"}/> :
+                    <image x={95} y={-10} href={"./img/star-over.png"}/>}
+                {destruction > destructionPrecent ? <image x={190} y={0} href={"./img/star.png"}/> :
+                    <image x={190} y={0} href={"./img/star-over.png"}/>}
+            </g>:""}
         <g transform={'translate(760 420)'}>
-             <text x={0} y={0}  fill={"white"} fontSize={33} >Очки</text>
-             <text x={400} y={0} textAnchor="end" fill={"white"} fontSize={33} >2000</text>
+            <image x={0} y={-50} href={"./img/money-icon.png"} />
+             <text x={400} y={0} textAnchor="end" fill={"white"} fontSize={33} >{scope}</text>
              <rect x={0} y={20} width={400} height={2} fill={"#3F4E64"}/>
         </g>
             <g transform={'translate(760 490)'}>
@@ -61,7 +67,7 @@ export default function GameOver(){
                 <rect x={0} y={25} width={400} height={2} fill={"#3F4E64"}/>
             </g>
             <g transform={'translate(760 630)'}>
-                {destruction > 50?<image x={0} y={-40} width={60} href={"./img/star.png"}/>:<image x={0} y={-40} width={60} href={"./img/star-over.png"}/>}
+                {destruction > destructionPrecent?<image x={0} y={-40} width={60} href={"./img/star.png"}/>:<image x={0} y={-40} width={60} href={"./img/star-over.png"}/>}
                 <image  x={65} y={-26} width={35}  href={"./img/stone.png"} />
                 <text x={400} y={-5} textAnchor="end" fill={"white"} fontSize={33} >  {destruction}%</text>
                 <text x={120} y={-5}  fill={"white"} fontSize={20} >Разрушение крепости</text>

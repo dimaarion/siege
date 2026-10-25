@@ -47,7 +47,7 @@ export function TrajectoryPreview({
         const forwardVec = new THREE.Vector3(...direction).normalize().multiplyScalar(vForward);
 
         const initialVelocity = new THREE.Vector3(forwardVec.x, vY, forwardVec.z);
-        const initialPosition = new THREE.Vector3(-0.5, 15, 0); // Высота ствола (0, 1, 0)
+        const initialPosition = new THREE.Vector3(-0.5, 19, 0); // Высота ствола (0, 1, 0)
 
         const trajectoryPoints = [];
         const timeStep = 0.1; // Шаг времени для расчета каждой точки (сек)

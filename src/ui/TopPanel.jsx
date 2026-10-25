@@ -1,6 +1,6 @@
 import useGameStore from "../store.js";
-import {useEffect, useMemo} from "react";
-import {generateTower, LEVEL_PROJECTILES} from "../action.js";
+import {useEffect} from "react";
+import {LEVEL_PROJECTILES} from "../action.js";
 
 export default function TopPanel(){
     const pule = useGameStore((state)=>state.pule)
@@ -21,13 +21,21 @@ export default function TopPanel(){
     }, [level]);
 
     useEffect(() => {
+        useGameStore.getState().setScope(fallenBrick * 10)
+    }, [fallenBrick]);
+
+    useEffect(() => {
+        useGameStore.getState().setScope(enemies * 100)
+    }, [enemies]);
+
+    useEffect(() => {
         LEVEL_PROJECTILES.filter((el)=>el.lev === level).forEach((el)=>{
             if(el.enemies === enemies && fallenBrick * 100 / bricks >= 50){
                 useGameStore.getState().setPage("victory")
             }else if(!recharge && (pule.length - puleStep) <= 0){
                 const time = setTimeout(()=>{
                      useGameStore.getState().setPage("game-over")
-                },5000)
+                },10000)
                 return ()=>clearTimeout(time)
             }
 
@@ -36,7 +44,11 @@ export default function TopPanel(){
 
     
     return <div className={"fixed flex justify-between z-20 top-0 left-0 right-0 h-20 w-full bg-gray-950"}>
-        <div className={"text-gray-50 text-2xl flex self-center ml-4"}>Очки {scope}</div>
+        <div className={"text-gray-50 text-2xl flex self-center ml-4"}>
+            <div className={"flex h-10"}>
+                <img src={"./img/money-icon.png"}/>
+            </div>
+            <div className={"p-2"}>{scope}</div></div>
         <div className={"text-gray-50 text-2xl flex self-center"}>
             Уровень: {level}
         </div>

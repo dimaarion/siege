@@ -7,6 +7,7 @@ import * as THREE from "three";
 import {Vector3} from "three";
 import Pule from "./Pule.jsx";
 import {TrajectoryPreview} from "./TrajectoryPreview.jsx";
+import {useFrame} from "@react-three/fiber";
 
 
 export function Jointmissile({beamRef, missileRef}){
@@ -30,7 +31,7 @@ export function JointBeam({rotatePlatformRef, beamRef,slant,stopRef,recharge}){
 
     const joint_beam =   useRevoluteJoint(rotatePlatformRef, beamRef, [
         // Position of the joint in bodyA's local space
-        [0, 8, slant],
+        [0, 12, slant],
         // Position of the joint in bodyB's local space
         [0, 0, 1],
         // Axis of the joint, expressed in the local-space of
@@ -52,12 +53,10 @@ export function JointBeam({rotatePlatformRef, beamRef,slant,stopRef,recharge}){
     return null
 }
 
-export default function Catapult({params,position = [0,0,0],shells}){
+export default function Catapult({params,position = [0,0,0],shells, nodes, material}){
 
-    const wheel_1Ref = useRef(null);
-    const wheel_2Ref = useRef(null);
-    const wheel_3Ref = useRef(null);
-    const wheel_4Ref = useRef(null);
+
+    const wheelRef = useRef(null);
     const rotatePlatformRef = useRef(null);
     const beamRef = useRef(null)
     const basketRef = useRef(null)
@@ -75,82 +74,13 @@ export default function Catapult({params,position = [0,0,0],shells}){
 
     const missileRef = useRef(null);
     const worldPosition = useRef(new THREE.Vector3())
-
-
-
-
-
-
     const platformRef = useRef(null);
 
-    const wheel_1 = useMemo(()=>{
-        return params.children.filter((el)=>el.name === "wheel_1");
-    },[params])
 
-    const wheel_2 = useMemo(()=>{
-        return params.children.filter((el)=>el.name === "wheel_2");
-    },[params])
-
-    const wheel_3 = useMemo(()=>{
-        return params.children.filter((el)=>el.name === "wheel_3");
-    },[params])
-
-    const wheel_4 = useMemo(()=>{
-        return params.children.filter((el)=>el.name === "wheel_4");
-    },[params])
-
-    const platform = useMemo(()=>{
-        return params.children.filter((el)=>el.name === "platform");
-    },[params])
-
-
-
-
-
-
-
-  const joint_1 =  useRevoluteJoint(platformRef, wheel_1Ref, [
-        // Position of the joint in bodyA's local space
-        [0, 0, -4],
-        // Position of the joint in bodyB's local space
-        [4, 0, 0],
-        // Axis of the joint, expressed in the local-space of
-        // the rigid-bodies it is attached to. Cannot be [0,0,0].
-        [1,0, 0]
-    ]);
-
-    const joint_2 =  useRevoluteJoint(platformRef, wheel_2Ref, [
-        // Position of the joint in bodyA's local space
-        [0, 0, -4],
-        // Position of the joint in bodyB's local space
-        [-4, 0, 0],
-        // Axis of the joint, expressed in the local-space of
-        // the rigid-bodies it is attached to. Cannot be [0,0,0].
-        [1, 0, 0]
-    ]);
-
-    const joint_3 =   useRevoluteJoint(platformRef, wheel_3Ref, [
-        // Position of the joint in bodyA's local space
-        [0, 0, 4],
-        // Position of the joint in bodyB's local space
-        [-4, 0, 0],
-        // Axis of the joint, expressed in the local-space of
-        // the rigid-bodies it is attached to. Cannot be [0,0,0].
-        [1, 0, 0]
-    ]);
-    const joint_4 =   useRevoluteJoint(platformRef, wheel_4Ref, [
-        // Position of the joint in bodyA's local space
-        [0, 0, 4],
-        // Position of the joint in bodyB's local space
-        [4, 0, 0],
-        // Axis of the joint, expressed in the local-space of
-        // the rigid-bodies it is attached to. Cannot be [0,0,0].
-        [1, 0, 0]
-    ]);
 
     const joint_rotatePlatform =   useRevoluteJoint(platformRef, rotatePlatformRef, [
         // Position of the joint in bodyA's local space
-        [0, 2, -5],
+        [0, 0, 0],
         // Position of the joint in bodyB's local space
         [0, 0, 0],
         // Axis of the joint, expressed in the local-space of
@@ -161,8 +91,8 @@ export default function Catapult({params,position = [0,0,0],shells}){
 
     useEffect(() => {
         useGameStore.getState().setSlant(0)
-
-    }, []);
+console.log(nodes)
+    }, [nodes]);
 
     useEffect(() => {
         const time = setTimeout(()=>{
@@ -174,41 +104,6 @@ export default function Catapult({params,position = [0,0,0],shells}){
 
 
 
-    useEffect(() => {
-        if (joint_1.current) {
-            joint_1.current.configureMotorVelocity(movement, 0.1)
-            if(movement < 0 || movement > 0){
-                wheel_1Ref.current.setEnabledRotations(true, true, true, true);
-            }
-        }
-    }, [joint_1, movement])
-
-    useEffect(() => {
-        if (joint_2.current) {
-            joint_2.current.configureMotorVelocity(movement, 0.1)
-            if(movement < 0 || movement > 0){
-                wheel_2Ref.current.setEnabledRotations(true, true, true, true);
-            }
-        }
-    }, [joint_2, movement])
-
-    useEffect(() => {
-        if (joint_3.current) {
-            joint_3.current.configureMotorVelocity(movement, 0.1)
-            if(movement < 0 || movement > 0){
-                wheel_3Ref.current.setEnabledRotations(true, true, true, true);
-            }
-        }
-    }, [joint_3, movement])
-
-    useEffect(() => {
-        if (joint_4.current) {
-            joint_4.current.configureMotorVelocity(movement, 0.1)
-            if(movement < 0 || movement > 0){
-                wheel_4Ref.current.setEnabledRotations(true, true, true, true);
-            }
-        }
-    }, [joint_4, movement])
 
     useEffect(() => {
         if (joint_rotatePlatform.current) {
@@ -226,9 +121,9 @@ export default function Catapult({params,position = [0,0,0],shells}){
 
     useEffect(() => {
         if (movement !== 0){
-            platformRef.current.setBodyType(0, true);
+         //   platformRef.current.setBodyType(0, true);
         }else {
-            platformRef.current.setBodyType(1, true);
+        //    platformRef.current.setBodyType(1, true);
         }
     }, [movement]);
 
@@ -255,37 +150,36 @@ export default function Catapult({params,position = [0,0,0],shells}){
 
 
 
+    useFrame(()=>{
+        if(platformRef.current){
+            const pos = platformRef.current.translation()
+
+            // console.log(movement === 1 && pos.z < 5)
+            if((movement === 1 && pos.z < 40) || (movement === -1 && pos.z > -40)){
+                wheelRef.current.children.forEach((el)=>{
+                    el.rotation.x += movement / 10
+                })
+                platformRef.current.setLinvel({
+                    x:0,y:0,z:movement * 4
+                })
+            }else {
+                platformRef.current.setLinvel({
+                    x:0,y:0,z:0
+                })
+            }
+
+        }
+
+    })
+
 
     return <group position={position}>
 
         {recharge && shot === 0 && pule.length + 1 > puleStep? <Jointmissile beamRef={beamRef} missileRef={missileRef} />:""}
         <JointBeam key={slant} recharge={recharge} beamRef={beamRef} rotatePlatformRef={rotatePlatformRef} slant={slant} stopRef={stopRef} />
-        <RigidBody enabledRotations={[false,false,false]} ref={wheel_1Ref} type={"dynamic"} colliders={"hull"}>
-            <group position={[0,0,0]}>
-                 {wheel_1.map((el)=><Wheel key={el.id} element={el} />)}
-            </group>
-        </RigidBody>
-
-        <RigidBody enabledRotations={[false,false,false]} ref={wheel_2Ref} type={"dynamic"} colliders={"hull"}>
-            <group position={[0,0,0]}>
-                {wheel_2.map((el)=><Wheel key={el.id} element={el} />)}
-            </group>
-        </RigidBody>
-
-        <RigidBody enabledRotations={[false,false,false]} ref={wheel_3Ref} type={"dynamic"} colliders={"hull"}>
-            <group position={[0,0,0]}>
-                {wheel_3.map((el)=><Wheel key={el.id} element={el} />)}
-            </group>
-        </RigidBody>
-
-        <RigidBody enabledRotations={[false,false,false]} ref={wheel_4Ref} type={"dynamic"} colliders={"hull"}>
-            <group position={[0,0,0]}>
-                {wheel_4.map((el)=><Wheel key={el.id} element={el} />)}
-            </group>
-        </RigidBody>
 
         <RigidBody enabledRotations={[false,false,false]}  ref={rotatePlatformRef} type={"dynamic"} colliders={"hull"}>
-            <group position={[0,0,0]} >
+            <group position={[0,3,0]} >
                 <group>
                     <Cylinder args={[3.5,3.5,2]}>
                         <meshStandardMaterial color="#fbe1b9" />
@@ -337,10 +231,25 @@ export default function Catapult({params,position = [0,0,0],shells}){
                 </group>
             </group>
         </RigidBody>
-        <RigidBody enabledRotations={[false,false,false]}  ref={platformRef} type={"fixed"} colliders={"cuboid"}>
-            <group position={[0,-2,0]}>
-                {platform.map((el)=><Clone key={el.id} object={el} />)}
+        <RigidBody enabledRotations={[false,false,false]}  ref={platformRef} type={"kinematicVelocity"} colliders={"cuboid"}>
+            <group position={[0,0,0]}>
+                <primitive position={[0,0,0]} object={nodes.platform_1} />
             </group>
+            <group ref={wheelRef}>
+                <group position={[5.5,0,4]} >
+                    <Wheel  element={nodes.wheel_1} />
+                </group>
+                <group position={[-5.5,0,4]} >
+                    <Wheel  element={nodes.wheel_1} />
+                </group>
+                <group position={[5.5,0,-4]} >
+                    <Wheel  element={nodes.wheel_1} />
+                </group>
+                <group position={[-5.5,0,-4]} >
+                    <Wheel  element={nodes.wheel_1} />
+                </group>
+            </group>
+
         </RigidBody>
 
     <Pule missileRef={missileRef} shells={shells} />

@@ -30,7 +30,7 @@ export default function Game(){
         <Physics gravity={[0,-10,0]} paused={page === "victory"} key={restartKey} debug={true} >
             <group>
                 <Ground />
-                {catapult.map((el)=><Catapult key={el.id} params={el.children} position={el.position} shells={shells} />)}
+                {catapult.map((el)=><Catapult  key={el.id} nodes={nodes} material={materials} params={el.children} position={el.position} shells={shells} />)}
                <Levels nodes={nodes} materials={materials} />
             </group>
         </Physics>
