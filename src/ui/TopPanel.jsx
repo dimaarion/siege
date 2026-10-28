@@ -29,8 +29,9 @@ export default function TopPanel(){
     }, [enemies]);
 
     useEffect(() => {
+console.log(fallenBrick, bricks)
         LEVEL_PROJECTILES.filter((el)=>el.lev === level).forEach((el)=>{
-            if(el.enemies === enemies && fallenBrick * 100 / bricks >= 50){
+            if(el.enemies === enemies && (fallenBrick * 100 / bricks) >= 50){
                 useGameStore.getState().setPage("victory")
             }else if(!recharge && (pule.length - puleStep) <= 0){
                 const time = setTimeout(()=>{
@@ -67,10 +68,10 @@ export default function TopPanel(){
         <div onPointerDown={() => {
             useGameStore.getState().restartKeyStep()
             useGameStore.getState().puleStepRestart()
-            useGameStore.getState().setSlant(1)
             useGameStore.getState().rechargeStop()
             useGameStore.getState().setFallenBrickRestart()
             useGameStore.getState().bricksRestart()
+            useGameStore.getState().enemiesRestart()
         }} className={"absolute left-2 top-22 bg-red-700 text-white rounded-2xl"}>
             <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="currentColor"
                  className="bi bi-arrow-counterclockwise" viewBox="0 0 16 16">

@@ -4,12 +4,14 @@ import useGameStore from "../store.js";
 import Road from "../components/Road.jsx";
 import Trees from "../components/Trees.jsx";
 import Hedgehog from "../components/Hedgehog.jsx";
+import {Ground} from "../components/Ground.jsx";
 
 export default function Level_1({nodes, materials}){
     const level = useGameStore((state)=>state.level)
     const objects = LEVEL_PROJECTILES.find((el)=>el.lev === level)
     return <group>
-        {objects.tower.map((el)=><Tower position={el.position} nodes={nodes} materials={materials} items={el.object} key={el.id + "tower"}/>)}
+        <Ground />
+        {objects.tower.map((el,i)=><Tower id={i} position={el.position} nodes={nodes} materials={materials} items={el.object} key={el.id + "tower"}/>)}
         {objects.wall.map((el)=><Wall position={el.position} nodes={nodes} materials={materials} items={el.object} key={el.id + "tower"}/>)}
         <Road points={[[0, 0, 220], [0, 0, -220]]} colliders={false} />
         <Trees exclude={[[0, 0, 200], [0, 0, -200]]} height={25} count={80} area={[-300, 300, -300, 300]} seed={10} />

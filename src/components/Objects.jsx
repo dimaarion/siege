@@ -43,9 +43,7 @@ export function InstancesObjects({arr, geometry, materials, children = null, ref
 
 export function Sensor({position=[0,0,0]}){
      return <RigidBody type={"fixed"} colliders={"cuboid"} position={position} >
-        <CuboidCollider onIntersectionEnter={(e)=>{
-
-        }} name={"sensor"} sensor={true} args={[180,2,180]} />
+        <CuboidCollider name={"sensor"} sensor={true} args={[180,2,180]} />
     </RigidBody>
 }
 
@@ -181,9 +179,12 @@ const {world} = useRapier()
 
 }
 
-export function Tower({items,nodes,position = [0,5,200], materials}){
-
+export function Tower({items,nodes,position = [0,5,200], materials, id}){
     const rbRef = useRef(null)
+    useEffect(() => {
+        rbRef.current.count = 0
+    }, []);
+
     const stone_block = useMemo(()=>{
         return items.map((el,i)=>{
             return {
@@ -221,23 +222,35 @@ export function Tower({items,nodes,position = [0,5,200], materials}){
     },[items])
 
 
-useFrame(()=>{
-    if(rbRef.current){
-        rbRef.current.forEach((el)=>{
-            const pos = el.translation()
-            if(pos.y < 2){
-               el.active = true
-            }
+    useFrame(() => {
+        if (rbRef.current) {
+            rbRef.current.forEach((el, index) => {
+                if (!el) return;
+                const pos = el.translation();
+                const initialY = stone_block[index]?.position[1] || 0;
 
-        })
-    }
-    useGameStore.getState().setFallenBrick(rbRef.current.filter((el)=>el.active).length)
-})
+                // Логируем первые несколько кадров или проверяем значения
+                // console.log(`Block ${index}: current Y = ${pos.y}, initial Y = ${initialY}`);
+
+                // Сделаем порог чувствительнее: например, падение больше чем на 1 единицу
+
+                if (pos.y < 4 && !el.userData?.isFallen) {
+                    if (!el.userData) el.userData = {};
+                    el.userData.isFallen = true;
+
+                    console.log(`Блок №${index} засчитан как упавший!`);
+                    useGameStore.getState().setFallenBrick(index);
+                }
+            });
+        }
+    });
 
 
     useEffect(() => {
-        useGameStore.getState().setBricks(stone_block.length)
-    }, [stone_block]);
+        console.log(rbRef.current)
+        useGameStore.getState().setBricks(rbRef.current.length)
+    }, []);
+
 
     return <group position={position}>
         <InstancedRigidBodies
@@ -249,11 +262,11 @@ useFrame(()=>{
             restitution={0.05}
             name={"brick-rig"}
             enabledRotations={[false,false,false]}
-            userData={{name:"brick",active:true}}
+            userData={{name:"brick",active:true,count:0}}
 
-            colliderNodes={[ <CuboidCollider  onIntersectionEnter={(e)=>{
+            colliderNodes={[ <CuboidCollider   onIntersectionEnter={(e)=>{
                 if(e.other.colliderObject.name === "sensor"){
-                    useGameStore.getState().setFallenBrick()
+
                 }
                 if(e.other.rigidBody.userData.name === "pule"){
                     rbRef.current.forEach((el)=>{

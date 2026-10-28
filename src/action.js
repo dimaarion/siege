@@ -143,7 +143,10 @@ export const LEVEL_PROJECTILES = [
         ],
         wall:[],
         goblin:[],
-        barrel:[]
+        barrel:[{
+            id:1,
+            position:[0,5,200]
+        }]
     },
     { lev: 2,  title: "Две башни",enemies: 2, armored: 0, catapultTier: 1, minShots: 2, pule: [1,1,6,6,7,7,8,8,9],
         tower:[
@@ -160,13 +163,28 @@ export const LEVEL_PROJECTILES = [
         ],
         wall: [],
         goblin:[],
-        barrel:[]
+        barrel:[{
+            id:1,
+            position:[50,5,200]
+        },{
+            id:2,
+            position:[-50,5,200]
+        }]
     },
-    { lev: 3,  title: "Каменная стена",    enemies: 1, armored: 0, catapultTier: 1, minShots: 2, pule: [4,4,2,3,6,7,8],
-        tower:[],
+    { lev: 3,  title: "Каменная стена",    enemies: 3, armored: 0, catapultTier: 1, minShots: 2, pule: [4,4,2,3,6,7,8],
+        tower:[{
+            id: 1,
+            object:generateTower({floors:2,width:5,enemies:[{...ENEMIES.goblin,floor: 1}],barrel:[]}),
+            position:[-50,5,200]
+        },
+            {
+                id: 2,
+                object:generateTower({floors:2,width:5,enemies:[{...ENEMIES.goblin,floor: 1}],barrel:[]}),
+                position:[50,5,200]
+            }],
         wall: [{
             id:1,
-            object:generateWall({length:20,rows:5,brickLength:5,brickDepth:3,brickHeight:3}),
+            object:generateWall({length:80,rows:5,brickLength:5,brickDepth:3,brickHeight:3}),
             position:[0,1,200]
         }],
         goblin:[{
@@ -174,14 +192,20 @@ export const LEVEL_PROJECTILES = [
         object:ENEMIES.goblin,
         position:[0,1,230],
         height:5
-
-    }]
+    }],
+        barrel:[{
+            id:1,
+            position:[50,5,200]
+        },{
+            id:2,
+            position:[-50,5,200]
+        }]
     },
     { lev: 4,  title: "Первая бочка",      enemies: 1, armored: 0, catapultTier: 1, minShots: 1, pule: [2,2,3,4,5,6],
         tower:[
             {
                 id: 1,
-                object:generateTower({floors:3,width:5,enemies:[{...ENEMIES.goblin,floor: 2}],barrel:[1]}),
+                object:generateTower({floors:3,width:5,enemies:[{...ENEMIES.goblin,floor: 2}],barrel:[]}),
                 position:[0,5,200]
             }
         ],
@@ -393,7 +417,6 @@ export function generateTower({ floors = 4, width = 3,enemies = [{type:"goblin",
 
         towerElements.forEach((el, i) => {
             const isSlab = i === 4;
-            console.log(barrel.find((em)=>em === j))
             res.push({
                 type: isSlab ? "stone_slab" : "stone_block",
                 enemies:enemies.find((em)=>em.floor === j) && i === 4,

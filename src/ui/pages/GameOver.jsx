@@ -23,7 +23,8 @@ export default function GameOver(){
     const destructionPrecent = 50
 
     const destruction = useMemo(()=>{
-        return (fallenBrick * 100 / bricks).toFixed(0) // процент разрушенных объектов, 0–100
+        let p = (fallenBrick * 100 / bricks)
+        return p > 100?100:p.toFixed(0) // процент разрушенных объектов, 0–100
     },[bricks, fallenBrick])
 
     const victory = useMemo(()=>{
@@ -79,9 +80,24 @@ export default function GameOver(){
                 }} onMouseOut={()=>{
                     setResume(false)
                 }}>
-                    {resume?<image cursor={"pointer"} x={-75} y={-60} width={500} href={"./img/red-hover.png"}/>:""}
-                    {victory?<image cursor={"pointer"} x={0} y={0} width={350} href={"./img/level-step.png"}/>:
-                        <image cursor={"pointer"} x={0} y={0} width={350} href={"./img/repeat-level.png"}/>}
+                    {resume?<image  cursor={"pointer"} x={-75} y={-60} width={500} href={"./img/red-hover.png"}/>:""}
+                    {victory?<image onPointerDown={()=>{
+                            useGameStore.getState().setLevelStep()
+                            useGameStore.getState().setPage("game")
+                            useGameStore.getState().restartKeyStep()
+                            useGameStore.getState().puleStepRestart()
+                            useGameStore.getState().rechargeStop()
+                            useGameStore.getState().enemiesRestart()
+                        }} cursor={"pointer"} x={0} y={0} width={350} href={"./img/level-step.png"}/>:
+                        <image onPointerDown={()=>{
+                            useGameStore.getState().restartKeyStep()
+                            useGameStore.getState().puleStepRestart()
+                            useGameStore.getState().rechargeStop()
+                            useGameStore.getState().setFallenBrickRestart()
+                            useGameStore.getState().bricksRestart()
+                            useGameStore.getState().setPage("game")
+                            useGameStore.getState().enemiesRestart()
+                        }} cursor={"pointer"} x={0} y={0} width={350} href={"./img/repeat-level.png"}/>}
 
                 </g>
 
