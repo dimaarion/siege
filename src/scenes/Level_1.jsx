@@ -1,4 +1,4 @@
-import {Barrel, Goblin, Sensor, Tower, Wall} from "../components/Objects.jsx";
+import {Barrel, Bridge, Goblin, Sensor, Tower, Wall} from "../components/Objects.jsx";
 import {HED, LEVEL_PROJECTILES} from "../action.js";
 import useGameStore from "../store.js";
 import Road from "../components/Road.jsx";
@@ -19,5 +19,6 @@ export default function Level_1({nodes, materials}){
         <Sensor position={[0,0,200]} />
         {objects.goblin.map((el)=><Goblin config={el.object} nodes={nodes} key={el.id + "goblin-no-tower"} position={el.position} height={el.height} />)}
         {objects.barrel.map((el)=><Barrel position={el.position} key={el.id + "barrel-no-tower"} height={4} />)}
+        {objects.bridge.map((el)=><Bridge element={el}  key={el.id + "bridge"} />)}
     </group>
 }

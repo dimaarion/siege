@@ -20,16 +20,16 @@ export default function GameOver(){
     const[levels,setLevels] = useState(false)
     const[restart,setRestart] = useState(false)
 
-    const destructionPrecent = 50
+    const destructionPrecent = 70
 
     const destruction = useMemo(()=>{
         let p = (fallenBrick * 100 / bricks)
-        return p > 100?100:p.toFixed(0) // процент разрушенных объектов, 0–100
+        return p > 100?100:p.toFixed(0)
     },[bricks, fallenBrick])
 
     const victory = useMemo(()=>{
-        return enemies === enemiesTotal && destruction > destructionPrecent
-    },[destruction, enemies, enemiesTotal])
+        return enemies === enemiesTotal 
+    },[enemies, enemiesTotal])
     
     return <div className={"fixed m-auto left-0 right-0 top-0 bottom-0 bg-gray-800 z-50"}>
         <svg width={"100%"} height={"100%"} viewBox={"0 0 1920 1080"} preserveAspectRatio="xMidYMid slice">
@@ -37,8 +37,12 @@ export default function GameOver(){
         <g transform={'translate(735 80)'}>
             {victory?<image x={0} y={0} width={450} href={"./img/bg-config-game-over.png"}/>:<image x={0} y={0} width={450} href={"./img/bg-config-game-over-2.png"}/>}
             <text x={180} y={victory?180:40} fill={"white"} fontSize={20}>{level} Уровень</text>
-            {victory?<text x={80} y={220} fill={"white"} fontSize={33}>Крепость разрушена</text>:
-                <text x={80} y={80} fill={"white"} fontSize={33}>ОСАДА ПРОВАЛЕНА</text>}
+            {victory?<text x={88} y={220} fill={"white"} fontSize={28}>ВРАГИ УНИЧТОЖЕНЫ</text>:
+                <g transform={'translate(80 80)'}>
+                    <text x={0} y={0} fill={"white"} fontSize={33}>ОСАДА ПРОВАЛЕНА</text>
+                    <text x={75} y={30} fill={"white"} fontSize={15}>Снаряды закончились</text>
+                </g>
+            }
         </g>
             {victory?<g transform={'translate(820 310)'}>
                 {enemies === enemiesTotal ? <image x={0} y={0} href={"./img/star.png"}/> :
@@ -56,8 +60,8 @@ export default function GameOver(){
             <g transform={'translate(760 490)'}>
                 {enemies === enemiesTotal?<image x={0} y={-40} width={60} href={"./img/star.png"}/>:<image x={0} y={-40} width={60} href={"./img/star-over.png"}/>}
                 <image  x={60} y={-30} width={45}  href={"./img/goblin-icon.png"} />
-                <text x={400} y={-5} textAnchor="end" fill={"white"} fontSize={33} >{enemiesTotal} / {enemies}</text>
-                <text x={120} y={-5}  fill={"white"} fontSize={20} >Все гоблины побеждены</text>
+                <text x={400} y={-5} textAnchor="end" fill={"white"} fontSize={33} >{enemies} / {enemiesTotal}</text>
+                {enemies === enemiesTotal?<text x={120} y={-5} fill={"white"} fontSize={20}>Все гоблины побеждены</text>:<text x={120} y={-5} fill={"white"} fontSize={20}>Еще гоблины остались</text>}
                 <rect x={0} y={25} width={400} height={2} fill={"#3F4E64"}/>
             </g>
             <g transform={'translate(760 560)'}>
@@ -88,6 +92,8 @@ export default function GameOver(){
                             useGameStore.getState().puleStepRestart()
                             useGameStore.getState().rechargeStop()
                             useGameStore.getState().enemiesRestart()
+                            useGameStore.getState().setFallenBrickRestart()
+                            useGameStore.getState().bricksRestart()
                         }} cursor={"pointer"} x={0} y={0} width={350} href={"./img/level-step.png"}/>:
                         <image onPointerDown={()=>{
                             useGameStore.getState().restartKeyStep()
@@ -105,7 +111,15 @@ export default function GameOver(){
             <g transform={'translate(785 770)'}>
                 {levels?<image cursor={"pointer"} x={165} y={-19} width={230} href={"./img/white-over.png"}/>:""}
                 {restart?<image cursor={"pointer"} x={-42} y={-19} width={230} href={"./img/white-over.png"}/>:""}
-                <image onMouseOver={()=>{
+                <image onPointerDown={()=>{
+                    useGameStore.getState().restartKeyStep()
+                    useGameStore.getState().puleStepRestart()
+                    useGameStore.getState().rechargeStop()
+                    useGameStore.getState().setFallenBrickRestart()
+                    useGameStore.getState().bricksRestart()
+                    useGameStore.getState().setPage("game")
+                    useGameStore.getState().enemiesRestart()
+                }} onMouseOver={()=>{
                     setRestart(true)
                 }} onMouseOut={()=>{
                     setRestart  (false)

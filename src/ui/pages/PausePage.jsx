@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {DEFAULT_SETTINGS} from "../../action.js";
-import useGameStore from "../../store.js";
+import useGameStore, {useStore} from "../../store.js";
 
 /**
  * Страница паузы с настройками для «Осады». Заменяет PauseMenu: в этом файле
@@ -252,6 +252,7 @@ export default function PausePage({ onReset = ()=>{},  onMenu = ()=>{} , title, 
               type="button"
               onClick={()=>{
                 useGameStore.getState().pauseStop()
+              //  useStore.getState().pauseStop()
               }}
               className={`rounded-sm cursor-pointer bg-red-700 px-4 py-3 text-lg font-bold transition duration-150 hover:brightness-110 active:scale-95 ${focus}`}
             >

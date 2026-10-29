@@ -1,4 +1,4 @@
-import useGameStore from "../store.js";
+import useGameStore, {useStore} from "../store.js";
 import {useEffect} from "react";
 import {LEVEL_PROJECTILES} from "../action.js";
 
@@ -29,11 +29,11 @@ export default function TopPanel(){
     }, [enemies]);
 
     useEffect(() => {
-console.log(fallenBrick, bricks)
+
         LEVEL_PROJECTILES.filter((el)=>el.lev === level).forEach((el)=>{
-            if(el.enemies === enemies && (fallenBrick * 100 / bricks) >= 50){
+            if(el.enemies === enemies){
                 useGameStore.getState().setPage("victory")
-            }else if(!recharge && (pule.length - puleStep) <= 0){
+            }else if(el.enemies !== enemies && !recharge && (pule.length - puleStep) <= 0){
                 const time = setTimeout(()=>{
                      useGameStore.getState().setPage("game-over")
                 },10000)
@@ -56,6 +56,7 @@ console.log(fallenBrick, bricks)
         <div className={"text-gray-50 text-2xl flex self-center"}>Снаряды: {puleStep !== pule.length + 1?(pule.length - puleStep):0}</div>
         <div onPointerDown={()=>{
             useGameStore.getState().pauseStart()
+                // useStore.getState().pauseStart()
         }} className={"text-gray-50 cursor-pointer hover:text-red-700 text-2xl flex self-center mr-4"}>
             <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" fill="currentColor"
                  className="bi bi-pause-btn" viewBox="0 0 16 16">
@@ -72,6 +73,7 @@ console.log(fallenBrick, bricks)
             useGameStore.getState().setFallenBrickRestart()
             useGameStore.getState().bricksRestart()
             useGameStore.getState().enemiesRestart()
+
         }} className={"absolute left-2 top-22 bg-red-700 text-white rounded-2xl"}>
             <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="currentColor"
                  className="bi bi-arrow-counterclockwise" viewBox="0 0 16 16">

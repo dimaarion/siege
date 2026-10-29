@@ -3,7 +3,7 @@ import Catapult from "../components/Catapult.jsx";
 import * as THREE from "three";
 import {useLoader} from "@react-three/fiber";
 import {useMemo} from "react";
-import useGameStore from "../store.js";
+import useGameStore, {useStore} from "../store.js";
 import {useAnimations, useGLTF} from "@react-three/drei";
 import {Levels} from "../scenes/Levels.jsx";
 import Camera from "../components/Camera.jsx";
@@ -17,7 +17,7 @@ export default function Game(){
     const {ref, actions} = useAnimations(animations);
 
     const restartKey = useGameStore((state)=>state.restartKey)
-    const page = useGameStore((state)=>state.page)
+    const pause = useStore((state)=>state.pause)
 
 
     const catapult = useMemo(()=>{
@@ -27,7 +27,7 @@ export default function Game(){
     },[loadedScene.children])
 
     return <group ref={ref}>
-        <Physics gravity={[0,-10,0]} paused={page === "victory"} key={restartKey} debug={true} >
+        <Physics gravity={[0,-10,0]} paused={pause} key={restartKey} debug={true} >
             <group>
                <Catapult   nodes={nodes} material={materials}  position={[0,3,0]} shells={shells} />
                <Levels nodes={nodes} materials={materials} />

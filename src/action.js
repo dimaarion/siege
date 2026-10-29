@@ -143,6 +143,7 @@ export const LEVEL_PROJECTILES = [
         ],
         wall:[],
         goblin:[],
+        bridge:[],
         barrel:[{
             id:1,
             position:[0,5,200]
@@ -163,6 +164,7 @@ export const LEVEL_PROJECTILES = [
         ],
         wall: [],
         goblin:[],
+        bridge:[],
         barrel:[{
             id:1,
             position:[50,5,200]
@@ -187,6 +189,7 @@ export const LEVEL_PROJECTILES = [
             object:generateWall({length:80,rows:5,brickLength:5,brickDepth:3,brickHeight:3}),
             position:[0,1,200]
         }],
+        bridge:[],
         goblin:[{
         id:1,
         object:ENEMIES.goblin,
@@ -201,19 +204,38 @@ export const LEVEL_PROJECTILES = [
             position:[-50,5,200]
         }]
     },
-    { lev: 4,  title: "Первая бочка",      enemies: 1, armored: 0, catapultTier: 1, minShots: 1, pule: [2,2,3,4,5,6],
+    { lev: 4,  title: "Первая бочка",      enemies: 3, armored: 0, catapultTier: 1, minShots: 1, pule: [2,2,3,4,5,6],
         tower:[
             {
                 id: 1,
                 object:generateTower({floors:3,width:5,enemies:[{...ENEMIES.goblin,floor: 2}],barrel:[]}),
-                position:[0,5,200]
+                position:[50,1,200]
+            },
+            {
+                id: 2,
+                object:generateTower({floors:3,width:5,enemies:[{...ENEMIES.goblin,floor: 2}],barrel:[]}),
+                position:[-50,1,200]
             }
         ],
         wall: [],
-        goblin:[],
+        goblin:[{
+            id:1,
+            object:ENEMIES.goblin,
+            position:[20,20,200],
+            height:5
+        }],
+        bridge:[{
+            id:1,
+            position:[0,20,200],
+            args:[110,1,6]
+        }],
         barrel:[{
         id:1,
-        position:[0,5,200]
+        position:[40,5,200]
+        },
+        {
+            id:2,
+            position:[-50,5,205]
         }]
     },
     { lev: 5,  title: "Диапазон и ежи",    enemies: 3, armored: 0, catapultTier: 1, minShots: 3, pule: [2,2,3,4,4] },
@@ -404,7 +426,7 @@ export function generateTower({ floors = 4, width = 3,enemies = [{type:"goblin",
         const pillarY = baseY + floorHeight / 2;
 
         // Центр крышки текущего этажа (лежит строго на колоннах)
-        const slabY = baseY + floorHeight + slabThickness / 2 + 0.5;
+        const slabY = baseY + floorHeight + slabThickness / 2 + 2.5;
 
         // Элементы этажа: 4 колонны по углам + 1 крышка посередине
         const towerElements = [

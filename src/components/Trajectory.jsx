@@ -1,6 +1,6 @@
 import {useMemo, useRef, useState} from "react";
 import * as THREE from "three";
-import {Line} from "@react-three/drei";
+import {Line, useKeyboardControls} from "@react-three/drei";
 import {useFrame} from "@react-three/fiber";
 import useGameStore from "../store.js";
 import {routable} from "../action.js";
@@ -14,14 +14,18 @@ export default function Trajectory({rotateRef,missileRef,basketRef}){
     const [rotateLine, setRotateLine] = useState(0)
     const [mass, setMass] = useState(0)
     const force = useGameStore((state) => state.force);
-
+    const [, get] = useKeyboardControls();
     useFrame(()=>{
         if(rotateRef.current){
+            const {left, right} = get();
             const towerRotation = useGameStore.getState().towerRotation
             const rotatePl = rotateRef.current.rotation()
-            if(towerRotation !== 0){
+            const pos = rotateRef.current.translation()
+            if(towerRotation !== 0 || left || right){
                 setRotateLine(rotatePl.y * 2)
             }
+            projectLinetRef.current.position.x = pos.x
+            projectLinetRef.current.position.z = pos.z
             basketRef.current.getWorldPosition(startPos)
             if(missileRef.current?.userData.mass){
                 setMass(missileRef.current?.userData.mass)

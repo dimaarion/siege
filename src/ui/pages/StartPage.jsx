@@ -1,5 +1,5 @@
 import {useMemo, useState} from 'react'
-import useGameStore from "../../store.js";
+import useGameStore, {useStore} from "../../store.js";
 import {useSpring,animated} from "@react-spring/web";
 
 
@@ -31,6 +31,7 @@ export default function StartPage(){
                         <image onPointerDown={()=>{
                             useGameStore.getState().setPage("game")
                             useGameStore.getState().setFallenBrickRestart()
+                            useStore.getState().pauseStop()
                         }} className={"cursor-pointer"} onMouseOver={()=>{
                             apiPlay.start(()=>({
                                 to:direct

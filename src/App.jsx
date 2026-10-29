@@ -1,6 +1,6 @@
 import './App.css'
 import {Canvas} from "@react-three/fiber";
-import {Sky} from "@react-three/drei";
+import {KeyboardControls, Sky} from "@react-three/drei";
 import Game from "./game/Game.jsx";
 import BottomMenu from "./ui/BottomMenu.jsx";
 import TopPanel from "./ui/TopPanel.jsx";
@@ -36,9 +36,17 @@ function App() {
               shadow-camera-top={30}
               shadow-camera-bottom={-30}
           />
+          <KeyboardControls
+              map={[
+                  { name: "forward", keys: ["ArrowUp", "w", "W"] },
+                  { name: "backward", keys: ["ArrowDown", "s", "S"] },
+                  { name: "left", keys: ["ArrowLeft", "a", "A"] },
+                  { name: "right", keys: ["ArrowRight", "d", "D"] },
+                  { name: "fire", keys: ["Space"] },
+              ]}
+          >
             <Game />
-
-
+          </KeyboardControls>
       </Canvas>
           <LoadImage />
             {page === "game"?<div>

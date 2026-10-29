@@ -59,7 +59,7 @@ const useGameStore = create((set) => ({
     pause:false,
     pauseStart:()=>set(()=>({pause:true})),
     pauseStop:()=>set(()=>({pause:false})),
-    level:2,
+    level:4,
     setLevel:(el)=>set(()=>({level:el})),
     setLevelStep:()=>set((state)=>({level:state.level + 1})),
     enemies:0,
@@ -75,6 +75,11 @@ const useGameStore = create((set) => ({
     setFallenBrickRestart:()=>set(()=>({fallenBrick:0})),
 }))
 
+export const useStore = create((set) => ({
+    pause:true,
+    pauseStart:()=>set(()=>({pause:true})),
+    pauseStop:()=>set(()=>({pause:false})),
+}))
 
 
 export default useGameStore

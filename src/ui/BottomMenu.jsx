@@ -1,4 +1,4 @@
-import useGameStore from "../store.js";
+import useGameStore, {useStore} from "../store.js";
 import AmmoSelector from "./AmmoSelector.jsx";
 
 
@@ -86,18 +86,18 @@ export default function BottomMenu(){
         </div>
         <div className={"fixed left-0 right-0 m-auto bottom-2 w-80 xl:w-200 h-20 z-20"}>
             <div className={"flex gap-4  w-full ml-6"}>
-                <div className={"w-1/2  bg-gray-900"}>
+                <div className={"w-full  bg-gray-900"}>
                     <input onChange={(e)=>{
                         useGameStore.getState().setForce(e.target.value)
                     }} value={force} className={"w-full appearance-none bg-red-700"} type={"range"} min={1} max={6} step={0.01}/>
                <div className={"p-2 text-xl   text-gray-50 text-center"}>Сила выстрела</div>
                 </div>
-                <div className={"w-1/2  bg-gray-900"}>
+                {/*<div className={"w-1/2  bg-gray-900"}>
                     <input onChange={(e)=>{
                         useGameStore.getState().setSlant(e.target.value)
                     }} value={slant} className={"w-full  appearance-none bg-red-700"} type={"range"} min={0} max={1.5} step={0.01}/>
                     <div className={"p-2 text-xl   text-gray-50 text-center"}>Угол наклона</div>
-                </div>
+                </div>*/}
             </div>
         </div>
 

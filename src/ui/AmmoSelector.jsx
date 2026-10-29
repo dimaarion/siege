@@ -35,7 +35,7 @@ export default function AmmoSelector({ radius = 1 }) {
         useGameStore.getState().puleChoose(index);
 
     return (
-        <div className="fixed bottom-25 w-40 h-50 xl:h-1/2 right-4 overflow-y-auto flex-wrap gap-2 rounded-xl border border-gray-700 bg-gray-900/90 p-2">
+        <div className="fixed bottom-25 w-35 h-50 xl:h-1/2 right-4 overflow-y-auto flex-wrap gap-2 rounded-xl border border-gray-700 bg-gray-900/90 p-2">
             {remaining.map(({ el, index }, i) => {
                 const ammo = getAmmo(materialOf(el));
                 const next = i === 0;

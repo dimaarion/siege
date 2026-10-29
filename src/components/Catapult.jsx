@@ -7,7 +7,7 @@ import {Vector3} from "three";
 import Pule from "./Pule.jsx";
 import {useFrame} from "@react-three/fiber";
 import {routable} from "../action.js";
-import {Box, Line} from "@react-three/drei";
+import {Box, Line, useKeyboardControls} from "@react-three/drei";
 import Trajectory from "./Trajectory.jsx";
 
 export function Jointmissile({beamRef, missileRef}){
@@ -25,36 +25,9 @@ export function Jointmissile({beamRef, missileRef}){
    return null
 }
 
-export function JointBeam({rotatePlatformRef, beamRef,slant,stopRef,recharge}){
-    const force = useGameStore((state)=>state.force)
-    const shot = useGameStore((state)=>state.shot)
-
-    const joint_beam =   useRevoluteJoint(rotatePlatformRef, beamRef, [
-        // Position of the joint in bodyA's local space
-        [0, 12, 0],
-        // Position of the joint in bodyB's local space
-        [0, 0, 1],
-        // Axis of the joint, expressed in the local-space of
-        // the rigid-bodies it is attached to. Cannot be [0,0,0].
-        [1, 0, 0]
-    ]);
-    useEffect(() => {
-        if (joint_beam.current && stopRef.current === null) {
-            let v = shot
-            if(!recharge){
-                v = -5
-            }
-            joint_beam.current.configureMotorVelocity(v, force)
-            joint_beam.current.setLimits(-Math.PI / 4, Math.PI / 2)
-
-        }
-
-    }, [force, joint_beam, recharge, shot, stopRef])
-    return null
-}
 
 export default function Catapult({params,position = [0,0,0],shells, nodes, material}){
-
+    const [, get] = useKeyboardControls();
 
     const wheelRef = useRef(null);
     const rotatePlatformRef = useRef(null);
@@ -154,36 +127,73 @@ console.log(nodes)
 
         }, [pule.length, puleStep, recharge, shot]);
 
+    function movie(wheelRef,platformRef,rotatePlatformRef,movement){
+        wheelRef.current.children.forEach((el)=>{
+            el.rotation.x += movement / 10
+        })
+        platformRef.current.setLinvel({
+            x:0,y:0,z:movement * 4
+        },true)
+        rotatePlatformRef.current.setLinvel({
+            x:0,y:0,z:movement * 4
+        },true)
+    }
 
+
+    function movieStop(platformRef,rotatePlatformRef){
+        platformRef.current.setLinvel({
+            x:0,y:0,z:0
+        },true)
+        rotatePlatformRef.current.setLinvel({
+            x:0,y:0,z:0
+        },true)
+    }
     useFrame(()=>{
         if(platformRef.current){
+            const { forward, backward,left, right } = get();
             const pos = platformRef.current.translation()
             if((movement === 1 && pos.z < 40) || (movement === -1 && pos.z > -40)){
-                wheelRef.current.children.forEach((el)=>{
-                    el.rotation.x += movement / 10
-                })
-                platformRef.current.setLinvel({
-                    x:0,y:0,z:movement * 4
-                },true)
-                rotatePlatformRef.current.setLinvel({
-                    x:0,y:0,z:movement * 4
-                },true)
+              movie(wheelRef,platformRef,rotatePlatformRef,movement)
             }else {
-                platformRef.current.setLinvel({
-                    x:0,y:0,z:0
-                },true)
-                rotatePlatformRef.current.setLinvel({
-                    x:0,y:0,z:0
-                },true)
+              movieStop(platformRef,rotatePlatformRef)
             }
+            if((forward && pos.z < 40) || (backward && pos.z > -40)){
+                let m = 0;
+                if(forward){
+                    m = 1
+                }
+                if(backward){
+                    m = -1
+                }
+
+                movie(wheelRef,platformRef,rotatePlatformRef,m)
+            }else {
+                movieStop(platformRef,rotatePlatformRef)
+            }
+
+
+
+
+
+
             if(missileRef.current && projectSightRef.current){
                 const mass = missileRef.current?.userData.mass?missileRef.current?.userData.mass:1
                 projectSightRef.current.position.z = force  * (70 - mass / 4)
 
             }
             if(rotatePlatformRef.current){
+                let rotatePlatform
                 const towerRotation = useGameStore.getState().towerRotation
-                rotatePlatformRef.current.setAngvel({x:0,y:towerRotation,z:0},true)
+                if(left){
+                    rotatePlatform = 0.1
+                }else if(right){
+                    rotatePlatform = -0.1
+                }else if(towerRotation !== 0){
+                    rotatePlatform = towerRotation
+                }else {
+                    rotatePlatform = 0
+                }
+                rotatePlatformRef.current.setAngvel({x:0,y:rotatePlatform,z:0},true)
             }
             if(projectRef.current){
                 const pos = rotatePlatformRef.current.translation()
@@ -202,7 +212,7 @@ console.log(nodes)
     return <group position={position}>
 
         {recharge && shot === 0 && pule.length + 1 > puleStep? <Jointmissile beamRef={beamRef} missileRef={missileRef} />:""}
-        <JointBeam  recharge={recharge} beamRef={beamRef} rotatePlatformRef={rotatePlatformRef} slant={0} stopRef={stopRef} />
+
 
         <RigidBody  enabledRotations={[false,false,false]}  ref={rotatePlatformRef} type={"kinematicVelocity"} colliders={"hull"}>
             <group position={[0,2,0]} >
